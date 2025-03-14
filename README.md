@@ -5,8 +5,8 @@
 Example applications include [transport networks](https://doi.org/10.1016/j.ress.2019.01.007) and [pipeline networks](https://doi.org/10.1016/j.ress.2021.107468).
 
 ## Contact
-If you have discussion points, refer to the [discussions tab](https://github.com/jieunbyun/mbnpy/discussions).  
-If you have need support, refer to the [issues tab](https://github.com/jieunbyun/mbnpy/issues).
+If you have discussion points, refer to the [discussions tab](https://github.com/jieunbyun/MBNpy/discussions).  
+If you have need support, refer to the [issues tab](https://github.com/jieunbyun/MBNpy/issues).
 
 ## Installation
 ### Install using pip
@@ -16,8 +16,8 @@ pip install mbnpy
 ```
 ### Downloading files from GitHub (development version)
 ```bash
-git clone git@github.com:jieunbyun/mbnpy.git
-cd mbnpy
+git clone git@github.com:jieunbyun/MBNpy.git
+cd MBNpy
 ```
 
 ## Documentation
