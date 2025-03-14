@@ -3,7 +3,7 @@ import itertools
 import pdb
 #from dask.distributed import Variable
 
-from BNS_JT import variable, cpm, branch, trans, operation, brc
+from mbnpy import variable, cpm, branch, trans, operation, brc
 
 
 def setup_model(cfg):

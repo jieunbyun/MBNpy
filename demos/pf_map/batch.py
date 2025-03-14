@@ -9,7 +9,7 @@ from multiprocessing import freeze_support
 from scipy.stats import beta
 import typer
 
-from BNS_JT import variable, cpm, trans, config, brc
+from mbnpy import variable, cpm, trans, config, brc
 
 HOME = Path(__file__).parent
 

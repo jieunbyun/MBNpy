@@ -3,7 +3,7 @@ import numpy as np
 from scipy import interpolate
 from pathlib import Path
 from scipy.stats import norm
-from BNS_JT import variable, cpm, trans, config
+from mbnpy import variable, cpm, trans, config
 import copy, pickle, time
 import concurrent.futures
 from multiprocessing import freeze_support

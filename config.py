@@ -1,17 +1,16 @@
-"""
-Config module
-
-"""
 import copy
 import logging
 import configparser
 import pandas as pd
 import json
 import networkx as nx
-import graphviz as gv
 from pathlib import Path
 
-#from BNS_JT.utils import read_nodes
+try: # Do not enforce the installation of graphviz
+    import graphviz as gv
+    GRAPHVIZ_AVAILABLE = True
+except ImportError:
+    GRAPHVIZ_AVAILABLE = False
 
 
 template_nodes = {

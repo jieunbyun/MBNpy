@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 
 import pytest
-import pdb
 import copy
-import time
 import pickle
 
 import networkx as nx
-import graphviz as gv
 import numpy as np
-import matplotlib.pyplot as plt
 from pathlib import Path
 
 from mbnpy import cpm, config, variable, branch, pipes_sys

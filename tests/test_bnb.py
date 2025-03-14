@@ -1,14 +1,5 @@
-"""
-Ji-Eun Byun (ji-eun.byun@glasgow.ac.uk)
-Created: 11 Apr 2023
-
-Generalise Branch-and-Bound (BnB) operation to build CPMs
-"""
 import numpy as np
 import copy
-import pdb
-import warnings
-import pytest
 
 from mbnpy import bnb_fns, branch, cpm, operation
 

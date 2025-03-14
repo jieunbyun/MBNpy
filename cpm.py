@@ -4,8 +4,8 @@ import copy
 import warnings
 from scipy.stats import norm, beta
 
-from BNS_JT.variable import Variable
-from BNS_JT import utils
+from mbnpy.variable import Variable
+from mbnpy import utils
 
 
 class Cpm(object):

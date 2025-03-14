@@ -8,10 +8,10 @@ from scipy.stats import norm, beta
 import networkx as nx
 from networkx.algorithms.flow import shortest_augmenting_path
 
-#from BNS_JT.utils import all_equal
-from BNS_JT import variable
-from BNS_JT import utils
-from BNS_JT import cpm
+#from mbnpy.utils import all_equal
+from mbnpy import variable
+from mbnpy import utils
+from mbnpy import cpm
 
 
 def condition(cpms, cnd_vars, cnd_states):

@@ -6,4 +6,6 @@ def test_batch():
 
     rbd.main()
     pf_map.debug()
+    routine.main()
+    road.main()
     #power_house.batch()

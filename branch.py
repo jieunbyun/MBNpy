@@ -17,7 +17,7 @@ import pyarrow
 #from dask.distributed import Client, worker_client, as_completed, get_client
 
 #import dask.bag as db
-from BNS_JT import cpm, variable, trans, brc
+from mbnpy import cpm, variable, trans, brc
 
 
 #attr = ["down", "up", "down_state", "up_state", "p"]

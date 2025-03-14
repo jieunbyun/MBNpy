@@ -15,7 +15,7 @@ from scipy import stats
 from itertools import islice
 from typing_extensions import Annotated
 
-from BNS_JT import model, config, trans, variable, brc, branch, cpm, operation
+from mbnpy import model, config, trans, variable, brc, branch, cpm, operation
 
 app = typer.Typer()
 

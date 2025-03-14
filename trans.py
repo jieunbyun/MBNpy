@@ -6,7 +6,7 @@ import socket
 import matplotlib
 import copy
 
-from BNS_JT import variable
+from mbnpy import variable
 from scipy.stats import lognorm
 
 if 'gadi' in socket.gethostname():

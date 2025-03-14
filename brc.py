@@ -11,7 +11,7 @@ import numpy as np
 import time
 #import editdistance
 
-from BNS_JT import variable, branch
+from mbnpy import variable, branch
 
 
 def run(probs, sys_fun, rules=None, brs = None, max_sf = np.inf, max_nb = np.inf, pf_bnd_wr=0.0, max_rules = np.inf, surv_first=True, active_decomp = 20, final_decomp = True, display_freq = 200):

@@ -1610,9 +1610,9 @@ def test_product6( setup_hybrid2 ):
     np.testing.assert_array_equal(Mprod.sample_idx, expected_sample_idx)
 
     expected_Cs = np.array([[0, 1, 2, 2, 0], [1, 1, 2, 2, 1], [0, 1, 1, 1, 0],
-                            [0, 0, 2, 2, 0], [1, 0, 1, 1, 1], [0, 0, 2, 2, 0], [0, 0, 0, 0, 1],
+                            [0, 0, 2, 2, 0], [1, 0, 1, 1, 1], [0, 0, 0, 0, 1], [0, 0, 2, 2, 0],
                             [0, 1, 2, 2, 0], [1, 1, 2, 2, 1], [1, 1, 1, 0, 1],
-                            [0, 1, 2, 2, 0], [1, 1, 2, 2, 1], [0, 1, 0, 1, 0]])
+                            [1, 1, 2, 2, 1], [0, 1, 2, 2, 0], [0, 1, 0, 1, 0]])
     np.testing.assert_array_equal(Mprod.Cs, expected_Cs)
 
     expected_q = np.array([0.95, 0.95, 0.95, 0.05, 0.05, 0.05, 0.05,

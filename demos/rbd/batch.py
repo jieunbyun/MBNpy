@@ -8,7 +8,7 @@ import numpy as np
 import typer
 
 
-from BNS_JT import model, config, trans, variable, cpm, operation, brc
+from mbnpy import model, config, trans, variable, cpm, operation, brc
 
 
 HOME = Path(__file__).parent
