@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
 
+def read_requirements():
+    with open("requirements.txt", "r") as f:
+        return [line.strip() for line in f.readlines() if line.strip() and not line.startswith("#")]
+
 setup(
     name="mbnpy",
     version="0.1.0",  # Update version when making changes
@@ -10,11 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/jieunbyun/MBNpy",  # GitHub URL
     packages=find_packages(),
-    install_requires=[
-        "numpy",
-        "pandas",
-        "networkx"
-    ],
+    install_requires=read_requirements(),
     python_requires=">=3.12",  # Enforces Python 3.12 or later
     classifiers=[
         "Programming Language :: Python :: 3",
