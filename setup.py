@@ -13,7 +13,7 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/jieunbyun/MBNpy",  # GitHub URL
-    packages=find_packages(),
+    packages=['mbnpy'],
     install_requires=read_requirements(),
     python_requires=">=3.12",  # Enforces Python 3.12 or later
     classifiers=[

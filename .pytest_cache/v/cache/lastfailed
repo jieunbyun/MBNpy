@@ -75,5 +75,15 @@
   "tests/test_inference.py::test_cal_Msys_by_cond_VE2": true,
   "tests/test_inference.py::test_cal_Msys_by_cond_VE4": true,
   "tests/test_inference.py::test_get_inf_vars": true,
-  "tests/test_inference.py::test_variable_elim_cond0": true
+  "tests/test_inference.py::test_variable_elim_cond0": true,
+  "tests/test_bnb.py": true,
+  "tests/test_bnb_fns.py": true,
+  "tests/test_branch.py": true,
+  "tests/test_brc.py": true,
+  "tests/test_cpm.py": true,
+  "tests/test_inference.py": true,
+  "tests/test_mcs_product.py": true,
+  "tests/test_model.py": true,
+  "tests/test_trans.py": true,
+  "tests/test_variable.py": true
 }
