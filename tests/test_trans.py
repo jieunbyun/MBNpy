@@ -26,7 +26,7 @@ else:
     matplotlib.use("TKAgg")
 import matplotlib.pyplot as plt
 
-from mbnpy import cpm, variable, config, branch, model, trans, operation
+from mbnpy import cpm, variable, config, branch, model, trans, inference
 
 
 HOME = Path(__file__).absolute().parent
@@ -399,7 +399,7 @@ def test_prob_delay1(setup_bridge, expected_probs):
     # get different variables order
     for i in arcs.keys():
 
-        is_inscope = operation.isinscope([vars_arc[i]], cpms_arc_cp)
+        is_inscope = inference.isinscope([vars_arc[i]], cpms_arc_cp)
         cpm_sel = [y for x, y in zip(is_inscope, cpms_arc_cp) if x]
         cpm_mult = cpm.product(cpm_sel)
         cpm_mult = cpm_mult.sum([vars_arc[i]])
@@ -422,7 +422,7 @@ def test_prob_delay1(setup_bridge, expected_probs):
     for j, idx in enumerate(var_ODs):
 
         # Prob. of disconnection
-        [cpm_ve] = operation.condition(cpms_arc_cp,
+        [cpm_ve] = inference.condition(cpms_arc_cp,
                                        cnd_vars=[vars_arc[idx]],
                                        cnd_states=[disconn_state])
         ODs_prob_disconn[j] = cpm_ve.p.sum(axis=0).item()
@@ -458,7 +458,7 @@ def test_prob_delay2(setup_bridge, expected_probs):
     # Probability of delay and disconnection
     M = [cpms_arc[k] for k in list(arcs.keys()) + list(var_ODs.keys())]
     var_elim_order = [vars_arc[i] for i in arcs.keys()]
-    M_VE2 = operation.variable_elim(M, var_elim_order)
+    M_VE2 = inference.variable_elim(M, var_elim_order)
 
     # "M_VE2" same as "M_VE"
     # Retrieve example results
@@ -493,7 +493,7 @@ def test_prob_delay3(setup_bridge_alt, expected_probs):
     #M = [cpms_arc[k] for k in list(arcs.keys()) + list(var_ODs.keys())]
     M = [cpms_arc[k] for k in list(arcs.keys()) + ['od1']]
     var_elim_order = [vars_arc[i] for i in arcs.keys()]
-    M_VE2 = operation.variable_elim(M, var_elim_order)
+    M_VE2 = inference.variable_elim(M, var_elim_order)
 
     # "M_VE2" same as "M_VE"
     # Retrieve example results
@@ -554,7 +554,7 @@ def test_prob_damage(setup_bridge, expected_probs):
                              p= [1, 1, 1])
 
     # using string
-    cpm_ve = operation.condition(cpms_arc,
+    cpm_ve = inference.condition(cpms_arc,
                            cnd_vars=['od_obs1', 'od_obs2', 'od_obs3'],
                            cnd_states=[1, 1, 0])
 

@@ -1,7 +1,7 @@
 import numpy as np
 import copy
 
-from mbnpy import bnb_fns, branch, cpm, operation
+from mbnpy import bnb_fns, branch, cpm, inference
 
 
 def test_bnb(setup_bridge, expected_probs):
@@ -40,7 +40,7 @@ def test_bnb(setup_bridge, expected_probs):
     #M_bnb = [cpms_arc[i] for i in list(arcs.keys()) + ['od1']]
     #M_bnb[od_var_id].C = C_od
     #M_bnb[od_var_id].p = np.ones(shape=(C_od.shape[0], 1))
-    M_bnb_VE= operation.variable_elim(M_bnb, var_elim_order)
+    M_bnb_VE= inference.variable_elim(M_bnb, var_elim_order)
 
     #print(M_bnb_VE)
     # FIXME: index issue

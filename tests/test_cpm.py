@@ -9,7 +9,7 @@ from pathlib import Path
 np.set_printoptions(precision=3)
 #pd.set_option.display_precision = 3
 
-from mbnpy import cpm, variable, config, trans, operation
+from mbnpy import cpm, variable, config, trans, inference
 
 HOME = Path(__file__).parent
 
@@ -1367,7 +1367,7 @@ def test_get_prob(setup_inference):
     ## Repeat inferences again using new functions -- the results must be the same.
     # Probability of delay and disconnection
     M = [cpms[k] for k in varis.keys()]
-    M_VE2 = operation.variable_elim(M, var_elim_order)
+    M_VE2 = inference.variable_elim(M, var_elim_order)
 
     # Prob. of failure
     prob_f1 = M_VE2.get_prob([varis['sys']], [0])
@@ -1383,7 +1383,7 @@ def test_get_prob_bnd1(setup_hybrid_no_samp):
     varis, cpms, _ = setup_hybrid_no_samp
 
     var_elim_order = ['haz', 'x0', 'x1']
-    result = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    result = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0], [1]]))
     np.testing.assert_array_almost_equal(result.p, np.array([[0.045, 0.585]]).T, decimal=3)
@@ -1398,7 +1398,7 @@ def test_get_prob_and_cov1(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = [varis['haz'], varis['x0'], varis['x1']]
-    result = operation.variable_elim(cpms, var_elim_order)
+    result = inference.variable_elim(cpms, var_elim_order)
 
     prob, cov, cint = result.get_prob_and_cov(['sys'], [0])
 
@@ -1411,7 +1411,7 @@ def test_get_prob_and_cov_cond1(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = ['haz', 'x1']
-    M = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    M = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     prob_m, cov_m, cint_m = M.get_prob_and_cov(['sys'], [0], method='MLE', nsample_repeat=5 )
     prob_b, cov_b, cint_b = M.get_prob_and_cov(['sys'], [0], method='Bayesian', nsample_repeat=5 )
@@ -1427,7 +1427,7 @@ def test_get_prob_and_cov_cond2(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = ['haz', 'x0']
-    M = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    M = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     prob_c, cov_c, cint_c = M.get_prob_and_cov_cond(['x1', 'sys'], [0,0], ['sys'], [0], nsample_repeat=5, conf_p=0.95 )
 
@@ -1538,7 +1538,7 @@ def test_product3( setup_hybrid ):
 
 def test_product4( setup_hybrid ):
     varis, cpms = setup_hybrid
-    Mc = operation.condition(cpms, ['haz'], [0])
+    Mc = inference.condition(cpms, ['haz'], [0])
     Mp0 = Mc['haz'].product( Mc['x0'] )
     Mp1 = Mp0.product(Mc['x1'])
 
@@ -1623,7 +1623,7 @@ def test_product6( setup_hybrid2 ):
 
 def test_sum6(setup_hybrid):
     varis, cpms = setup_hybrid
-    Mc = operation.condition(cpms, ['haz'], [0])
+    Mc = inference.condition(cpms, ['haz'], [0])
     Mp0 = Mc['haz'].product( Mc['x0'] )
     Mp1 = Mp0.product(Mc['x1'])
 

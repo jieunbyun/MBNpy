@@ -3,7 +3,7 @@ import itertools
 import pdb
 #from dask.distributed import Variable
 
-from mbnpy import variable, cpm, branch, trans, operation, brc
+from mbnpy import variable, cpm, branch, trans, inference, brc
 
 
 def setup_model(cfg):
@@ -137,7 +137,7 @@ def compute_prob(cfg, cpms, varis, var_elim, key, idx_state, flag):
     #M = [cpms_arc[k] for k in list(arcs.keys()) + list(var_ODs.keys())]
     M = [cpms[k] for k in var_elim + [key]]
     var_elim = [varis[i] for i in var_elim]
-    M_VE2 = operation.variable_elim(M, var_elim)
+    M_VE2 = inference.variable_elim(M, var_elim)
 
     # Retrieve example results
     # Prob. of disconnection

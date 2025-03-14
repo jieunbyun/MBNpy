@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from collections import Counter
 
-from mbnpy import trans, branch, variable, cpm, brc, operation
+from mbnpy import trans, branch, variable, cpm, brc, inference
 
 
 HOME = Path(__file__).parent
@@ -430,7 +430,7 @@ def test_inference1(setup_inference):
     # case 1: no observatio
     cpms, varis, var_elim_order, arcs = setup_inference
 
-    Msys = operation.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
+    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
     np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
 
@@ -446,9 +446,9 @@ def test_inference2(setup_inference):
     cnd_vars = [f'o{i}' for i in range(1, len(arcs) + 1)]
     cnd_states = [1, 1, 0, 1, 0, 1]  # observing e3, e5 failure
 
-    Mobs = operation.condition([cpms[v] for v in varis.keys()], cnd_vars, cnd_states)
+    Mobs = inference.condition([cpms[v] for v in varis.keys()], cnd_vars, cnd_states)
     # P(sys, obs)
-    Msys_obs = operation.variable_elim(Mobs, var_elim_order)
+    Msys_obs = inference.variable_elim(Mobs, var_elim_order)
 
     np.testing.assert_array_almost_equal(Msys_obs.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys_obs.p, np.array([[2.765e-5, 5.515e-5]]).T)
@@ -793,7 +793,7 @@ def test_proposed_branch_and_bound_using_probs(main_sys):
         p = np.ones((len(csys), 1), int))
 
     var_elim_order = [varis[k] for k in arcs.keys()]
-    Msys = operation.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
+    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
     np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
 
@@ -880,7 +880,7 @@ def test_get_csys3(main_sys):
         p = np.ones((len(csys), 1), int))
 
     var_elim_order = [varis[k] for k in arcs.keys()]
-    Msys = operation.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
+    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
     np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
 
@@ -890,7 +890,7 @@ def test_inference1(setup_inference):
     # case 1: no observatio
     cpms, varis, var_elim_order, arcs = setup_inference
 
-    Msys = operation.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
+    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
     np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
 
@@ -906,9 +906,9 @@ def test_inference2(setup_inference):
     cnd_vars = [f'o{i}' for i in range(1, len(arcs) + 1)]
     cnd_states = [1, 1, 0, 1, 0, 1]  # observing e3, e5 failure
 
-    Mobs = operation.condition([cpms[v] for v in varis.keys()], cnd_vars, cnd_states)
+    Mobs = inference.condition([cpms[v] for v in varis.keys()], cnd_vars, cnd_states)
     # P(sys, obs)
-    Msys_obs = operation.variable_elim(Mobs, var_elim_order)
+    Msys_obs = inference.variable_elim(Mobs, var_elim_order)
 
     np.testing.assert_array_almost_equal(Msys_obs.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys_obs.p, np.array([[2.765e-5, 5.515e-5]]).T)

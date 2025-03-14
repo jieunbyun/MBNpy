@@ -9,7 +9,7 @@ from pathlib import Path
 np.set_printoptions(precision=3)
 #pd.set_option.display_precision = 3
 
-from mbnpy import cpm, variable, config, trans, brc, operation
+from mbnpy import cpm, variable, config, trans, brc, inference
 
 HOME = Path(__file__).parent
 
@@ -159,11 +159,11 @@ def test_isinscope1ss():
                       p = [1, 1, 1, 1])
         cpms.append(m)
 
-    result = operation.isinscope([A1], cpms)
+    result = inference.isinscope([A1], cpms)
     expected = np.array([[1, 0, 0, 0, 0, 0, 1, 1, 1, 1]]).T
     np.testing.assert_array_equal(expected, result)
 
-    result = operation.isinscope([A1, A2], cpms)
+    result = inference.isinscope([A1, A2], cpms)
     expected = np.array([[1, 1, 0, 0, 0, 0, 1, 1, 1, 1]]).T
     np.testing.assert_array_equal(expected, result)
 
@@ -173,7 +173,7 @@ def test_get_sample_order(setup_mcs_product):
     cpms = setup_mcs_product
     cpms = [cpms[k] for k in [1, 2, 3]]
 
-    sampleOrder, sampleVars, varAdditionOrder = operation.get_sample_order(cpms)
+    sampleOrder, sampleVars, varAdditionOrder = inference.get_sample_order(cpms)
     expected = [0, 1, 2]
     np.testing.assert_array_equal(sampleOrder, expected)
     np.testing.assert_array_equal(varAdditionOrder, expected)
@@ -187,7 +187,7 @@ def test_get_prod_idx1(setup_mcs_product):
 
     cpms = setup_mcs_product
     cpms = [cpms[k] for k in [1, 2, 3]]
-    result = operation.get_prod_idx(cpms, [])
+    result = inference.get_prod_idx(cpms, [])
 
     expected = 0
     np.testing.assert_array_equal(result, expected)
@@ -199,7 +199,7 @@ def test_get_prod_idx2(setup_mcs_product):
     cpms = {k:cpms[k] for k in [1, 2, 3]}
 
     varis = cpms[3].get_variables(['v3'])
-    result = operation.get_prod_idx(cpms, varis)
+    result = inference.get_prod_idx(cpms, varis)
 
     expected = 0
     np.testing.assert_array_equal(result, expected)
@@ -217,7 +217,7 @@ def test_single_sample1(setup_mcs_product):
     sampleVars = [v1, v2, v3]
     varAdditionOrder = [0, 1, 2]
     sampleInd = [v1]
-    sample, sampleProb = operation.single_sample(cpms, sampleOrder, sampleVars, varAdditionOrder, sampleInd)
+    sample, sampleProb = inference.single_sample(cpms, sampleOrder, sampleVars, varAdditionOrder, sampleInd)
 
     if (sample == [1, 1, 1]).all():
         np.testing.assert_array_almost_equal(sampleProb, [[0.846]], decimal=3)
@@ -236,7 +236,7 @@ def test_single_sample2(setup_mcs_product):
     varAdditionOrder = [0, 1, 2]
     sampleInd = [1]
 
-    sample, sampleProb = operation.single_sample(cpms, sampleOrder, sampleVars, varAdditionOrder, sampleInd)
+    sample, sampleProb = inference.single_sample(cpms, sampleOrder, sampleVars, varAdditionOrder, sampleInd)
 
     if (sample == [1, 1, 1]).all():
         np.testing.assert_array_almost_equal(sampleProb, [[0.846]], decimal=3)
@@ -254,7 +254,7 @@ def test_single_sample3(setup_mcs_product):
     varAdditionOrder = [0, 1, 2]
     sampleInd = [1]
 
-    sample, sampleProb = operation.single_sample(cpms, sampleOrder, sampleVars, varAdditionOrder, sampleInd, is_scalar=False)
+    sample, sampleProb = inference.single_sample(cpms, sampleOrder, sampleVars, varAdditionOrder, sampleInd, is_scalar=False)
 
     if (sample == [1, 1, 1]).all():
         np.testing.assert_array_almost_equal(sampleProb, [[0.9],[0.99],[0.95]], decimal=3)
@@ -267,7 +267,7 @@ def test_mcs_product1(setup_mcs_product):
     cpms = {k:cpms[k] for k in [1, 2, 3]}
 
     nSample = 10
-    Mcs = operation.mcs_product(cpms, nSample)
+    Mcs = inference.mcs_product(cpms, nSample)
 
     assert [x.name for x in Mcs.variables]==['v3', 'v2', 'v1']
 
@@ -293,7 +293,7 @@ def test_mcs_product2(setup_mcs_product):
     cpms = setup_mcs_product
     cpms = [cpms[k] for k in [1, 2, 3, 4, 5]]
     nSample = 10
-    Mcs = operation.mcs_product(cpms, nSample)
+    Mcs = inference.mcs_product(cpms, nSample)
 
     assert [x.name for x in Mcs.variables]==['v5', 'v4', 'v3', 'v2', 'v1']
     assert Mcs.Cs.shape== (10, 5)
@@ -317,7 +317,7 @@ def test_mcs_product2d(setup_mcs_product):
     cpms = setup_mcs_product
     cpms = {k+1:cpms[k] for k in [1, 2, 3, 4, 5]}
     nSample = 10
-    Mcs = operation.mcs_product(cpms, nSample)
+    Mcs = inference.mcs_product(cpms, nSample)
 
     assert [x.name for x in Mcs.variables]==['v5', 'v4', 'v3', 'v2', 'v1']
 
@@ -342,7 +342,7 @@ def test_mcs_product2ds(setup_mcs_product):
     cpms_ = setup_mcs_product
 
     nSample = 10
-    Mcs = operation.mcs_product(cpms_, nSample)
+    Mcs = inference.mcs_product(cpms_, nSample)
 
     assert [x.name for x in Mcs.variables]==['v5', 'v4', 'v3', 'v2', 'v1']
 
@@ -367,7 +367,7 @@ def test_mcs_product2ds2(setup_mcs_product):
     cpms_ = setup_mcs_product
 
     nSample = 10
-    Mcs = operation.mcs_product(cpms_, nSample, is_scalar=False)
+    Mcs = inference.mcs_product(cpms_, nSample, is_scalar=False)
 
     assert [x.name for x in Mcs.variables]==['v5', 'v4', 'v3', 'v2', 'v1']
 
@@ -395,7 +395,7 @@ def test_mcs_product3(setup_mcs_product):
     cpms = [cpms[k] for k in [2, 5]]
 
     #with pytest.raises(TypeError):
-    Mcs = operation.mcs_product(cpms, nSample)
+    Mcs = inference.mcs_product(cpms, nSample)
     assert Mcs.variables == []
     assert Mcs.no_child == 0
     assert Mcs.C.shape[0] == 0
@@ -414,7 +414,7 @@ def test_condition(setup_mcs_product):
                    C = np.array([[0, 0], [1, 0], [0, 1], [1, 1]]),
                    p = np.array([0.95, 0.05, 0.85, 0.15]).T)
     """
-    [M]= operation.condition([cpms[3]], condVars, condStates)
+    [M]= inference.condition([cpms[3]], condVars, condStates)
     np.testing.assert_array_equal(M.C, np.array([[0, 0], [1, 0]]))
     np.testing.assert_array_equal(M.p, np.array([[0.95], [0.05]]))
     np.testing.assert_array_equal([x.name for x in M.variables], ['v3', 'v1'])
@@ -424,7 +424,7 @@ def test_condition(setup_mcs_product):
     # condvars = v1
     condVars = [v1]
     condStates = [0]
-    [M]= operation.condition([cpms[3]], condVars, condStates)
+    [M]= inference.condition([cpms[3]], condVars, condStates)
     np.testing.assert_array_equal(M.C, np.array([[0, 0], [1, 0]]))
     np.testing.assert_array_equal(M.p, np.array([[0.95], [0.05]]))
     np.testing.assert_array_equal([x.name for x in M.variables], ['v3', 'v1'])
@@ -435,7 +435,7 @@ def test_condition(setup_mcs_product):
     #condVars = ['v1', 'v2']
 
     # using dict for cpms
-    M= operation.condition({0: cpms[3]}, condVars, condStates)
+    M= inference.condition({0: cpms[3]}, condVars, condStates)
     np.testing.assert_array_equal(M[0].C, np.array([[0, 0], [1, 0]]))
     np.testing.assert_array_equal(M[0].p, np.array([[0.95], [0.05]]))
     np.testing.assert_array_equal([x.name for x in M[0].variables], ['v3', 'v1'])
@@ -443,7 +443,7 @@ def test_condition(setup_mcs_product):
     assert M[0].sample_idx.any() == False
 
     # using cpm for cpm
-    [M]= operation.condition(cpms[3], condVars, condStates)
+    [M]= inference.condition(cpms[3], condVars, condStates)
     np.testing.assert_array_equal(M.C, np.array([[0, 0], [1, 0]]))
     np.testing.assert_array_equal(M.p, np.array([[0.95], [0.05]]))
     np.testing.assert_array_equal([x.name for x in M.variables], ['v3', 'v1'])
@@ -465,8 +465,8 @@ def test_get_var_idx(setup_Msys_Mcomps):
 
     _varis = [varis['x0'], varis['x2']]
 
-    assert operation.get_var_idx(_varis, ['x0', 'x2']) == [0, 1]
-    assert operation.get_var_idx(_varis, ['x2', 'x0']) == [1, 0]
+    assert inference.get_var_idx(_varis, ['x0', 'x2']) == [0, 1]
+    assert inference.get_var_idx(_varis, ['x2', 'x0']) == [1, 0]
 
 
 def test_get_variables_from_cpms1():
@@ -495,14 +495,14 @@ def test_get_variables_from_cpms1():
 
     M = [m1, m2, m3]
 
-    [res] = operation.get_variables(M, ['v1'])
+    [res] = inference.get_variables(M, ['v1'])
     assert res.name == 'v1'
 
-    res = operation.get_variables(M, ['v1', 'v3', 'v2'])
+    res = inference.get_variables(M, ['v1', 'v3', 'v2'])
     assert [x.name for x in res] == ['v1', 'v3', 'v2']
 
     with pytest.raises(AssertionError):
-        operation.get_variables(M, ['v4', 'v1', 'v2'])
+        inference.get_variables(M, ['v4', 'v1', 'v2'])
 
 
 def test_get_variables_from_cpms2(setup_condition):
@@ -518,7 +518,7 @@ def test_get_variables_from_cpms2(setup_condition):
     Mx = cpm.Cpm(variables=[v5, v2, v3, v4], no_child=1, C = C, p = p.T)
     condVars = ['v2', 'v3']
 
-    condVars = operation.get_variables([Mx], condVars)
+    condVars = inference.get_variables([Mx], condVars)
     assert [x.name for x in condVars] == ['v2', 'v3']
 
 
@@ -530,7 +530,7 @@ def test_variable_elim(setup_bridge):
 
     cpms = [cpms_arc[k] for k in ['od1'] + list(arcs.keys())]
     var_elim_order = [vars_arc[i] for i in arcs.keys()]
-    result = operation.variable_elim(cpms, var_elim_order)
+    result = inference.variable_elim(cpms, var_elim_order)
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0, 1, 2]]).T)
     np.testing.assert_array_almost_equal(result.p, np.array([[0.009, 0.048, 0.942]]).T, decimal=3)
@@ -568,7 +568,7 @@ def test_prod_cpm_sys_and_comps():
                           p = np.ones(csys_by_od.shape[0]))
     cpms_comps = {k: cpms[k] for k in cfg.infra['edges'].keys()}
 
-    cpms_new = operation.prod_Msys_and_Mcomps(cpms['sys'], list(cpms_comps.values()))
+    cpms_new = inference.prod_Msys_and_Mcomps(cpms['sys'], list(cpms_comps.values()))
 
     expected_C = np.array([[1, 1, 2, 2, 1, 2],
                            [1, 1, 1, 2, 0, 1],
@@ -629,7 +629,7 @@ def test_get_subset5(setup_hybrid):
 def test_get_variables_from_cpms3(setup_hybrid):
 
     varis, cpms = setup_hybrid
-    vars_ = operation.get_variables(cpms,['x0','x1'])
+    vars_ = inference.get_variables(cpms,['x0','x1'])
 
     assert all(isinstance(v, variable.Variable) for v in vars_)
     assert vars_[0].name == 'x0'
@@ -640,7 +640,7 @@ def test_get_variables_from_cpms4(setup_hybrid_no_samp):
 
     varis, cpms, _ = setup_hybrid_no_samp
     with pytest.raises(AssertionError):
-        _ = operation.get_variables(cpms, varis.values())
+        _ = inference.get_variables(cpms, varis.values())
 
 
 def test_condition6(setup_hybrid):
@@ -652,7 +652,7 @@ def test_condition6(setup_hybrid):
     cpms['x1'] = cpm.Cpm(variables=[varis['x1'], varis['haz']], no_child=1, C=np.array([[0,0],[1,0],[0,1],[1,1]]), p=[0.3,0.7,0.4,0.6])
     cpms['sys'] = cpm.Cpm(variables=[varis['sys'], varis['x0'], varis['x1']], no_child=1, C=np.array([[0,0,0],[1,1,1]]), p=np.array([1.0,1.0])) # incomplete C (i.e. C does not include all samples)
     """
-    Mc = operation.condition(cpms, ['haz'], [0])
+    Mc = inference.condition(cpms, ['haz'], [0])
 
     np.testing.assert_array_almost_equal(Mc['haz'].C, np.array([[0]]))
     np.testing.assert_array_almost_equal(Mc['haz'].ps, cpms['haz'].q * 0.7)
@@ -672,7 +672,7 @@ def test_variable_elim1(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = [varis['haz'], varis['x0'], varis['x1']]
-    result = operation.variable_elim(cpms, var_elim_order)
+    result = inference.variable_elim(cpms, var_elim_order)
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0], [1]]))
     np.testing.assert_array_almost_equal(result.p, np.array([[0.045, 0.585]]).T, decimal=3)
@@ -691,7 +691,7 @@ def test_prod_cpm_sys_and_comps1(setup_Msys_Mcomps):
 
     varis, cpms = setup_Msys_Mcomps
 
-    Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0'], cpms['x1'], cpms['x2']])
+    Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0'], cpms['x1'], cpms['x2']])
 
     assert Msys.variables == [varis['sys'], varis['x0'], varis['x1'], varis['x2']]
     assert Msys.no_child == 4
@@ -703,7 +703,7 @@ def test_prod_cpm_sys_and_comps2(setup_Msys_Mcomps):
 
     varis, cpms = setup_Msys_Mcomps
 
-    Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0_c'], cpms['x1_c'], cpms['x2_c']])
+    Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0_c'], cpms['x1_c'], cpms['x2_c']])
 
     assert Msys.variables == [varis['sys'], varis['x0'], varis['x1'], varis['x2'], varis['haz']]
     assert Msys.no_child == 4
@@ -715,7 +715,7 @@ def test_prod_cpm_sys_and_comps3(setup_Msys_Mcomps):
 
     varis, cpms = setup_Msys_Mcomps
 
-    Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0'], cpms['x2']])
+    Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0'], cpms['x2']])
 
     assert Msys.variables == [varis['sys'], varis['x0'], varis['x2'], varis['x1']]
     assert Msys.no_child == 3
@@ -727,7 +727,7 @@ def test_prod_cpm_sys_and_comps4(setup_Msys_Mcomps):
 
     varis, cpms = setup_Msys_Mcomps
 
-    Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x1_c'], cpms['x2_c']])
+    Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x1_c'], cpms['x2_c']])
 
     assert Msys.variables == [varis['sys'], varis['x1'], varis['x2'], varis['x0'], varis['haz']]
     assert Msys.no_child == 3
@@ -741,12 +741,12 @@ def test_prod_cpm_sys_and_comps5(setup_Msys_Mcomps):
 
     cpms['x1_c'].C = np.array([[0,1], [1,1]])
     with pytest.raises(AssertionError):
-        Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0_c'], cpms['x1_c']])
+        Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0_c'], cpms['x1_c']])
 
     varis['haz2'] = variable.Variable(name='haz2', values=['mild', 'severe'])
     cpms['x2_c'].variables = [varis['x2'], varis['haz2']]
     with pytest.raises(AssertionError):
-        Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0_c'], cpms['x2_c']])
+        Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0_c'], cpms['x2_c']])
 
 
 def test_prod_cpm_sys_and_comps6(setup_Msys_Mcomps):
@@ -755,7 +755,7 @@ def test_prod_cpm_sys_and_comps6(setup_Msys_Mcomps):
 
     varis['x3'] = variable.Variable(name='x3', values=['fail', 'surv'])
     cpms['x3'] = cpm.Cpm( [varis['x3']], 1, np.array([0, 1]), p = [0.3, 0.7] )
-    Msys = operation.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0'], cpms['x2'], cpms['x3']])
+    Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms['x0'], cpms['x2'], cpms['x3']])
 
     assert Msys.variables == [varis['sys'], varis['x0'], varis['x2'], varis['x1']]
     assert Msys.no_child == 3
@@ -768,7 +768,7 @@ def test_cal_Msys_by_cond_VE1(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = ['haz', 'x0', 'x1']
-    result = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    result = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0], [1]]))
     np.testing.assert_array_almost_equal(result.p, np.array([[0.045, 0.585]]).T, decimal=3)
@@ -789,7 +789,7 @@ def test_cal_Msys_by_cond_VE2(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = ['haz', 'x1']
-    result = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    result = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0, 0], [1, 1]]))
     np.testing.assert_array_almost_equal(result.p, np.array([[0.045, 0.585]]).T, decimal=3)
@@ -810,7 +810,7 @@ def test_cal_Msys_by_cond_VE3(setup_hybrid_no_samp):
     varis, cpms, _ = setup_hybrid_no_samp
 
     var_elim_order = ['haz', 'x0', 'x1']
-    result = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    result = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0], [1]]))
     np.testing.assert_array_almost_equal(result.p, np.array([[0.045, 0.585]]).T, decimal=3)
@@ -821,7 +821,7 @@ def test_cal_Msys_by_cond_VE4(setup_hybrid_no_samp):
     varis, cpms, _ = setup_hybrid_no_samp
 
     var_elim_order = ['haz', 'x1']
-    result = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    result = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
     np.testing.assert_array_almost_equal(result.C, np.array([[0, 0], [1, 1]]))
     np.testing.assert_array_almost_equal(result.p, np.array([[0.045, 0.585]]).T, decimal=3)
@@ -843,7 +843,7 @@ def test_get_prod_idx3(setup_hybrid_no_samp):
     # x0, haz
     # x1, haz
 
-    out = operation.get_prod_idx(cpms_, sample_vars)
+    out = inference.get_prod_idx(cpms_, sample_vars)
 
     assert out == None
 
@@ -853,12 +853,12 @@ def test_rejection_sampling_sys(setup_hybrid_no_samp):
 
     var_elim_order = ['haz', 'x0', 'x1', 'sys']
     varis, cpms, sys_fun = setup_hybrid_no_samp
-    Msys = operation.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
+    Msys = inference.cal_Msys_by_cond_VE(cpms, varis, ['haz'], var_elim_order, 'sys')
 
-    cpms2, result = operation.rejection_sampling_sys(cpms, 'sys', sys_fun, 0.05, sys_st_monitor = 0, known_prob = Msys.p.sum(), sys_st_prob = Msys.p[0], rand_seed = 1)
+    cpms2, result = inference.rejection_sampling_sys(cpms, 'sys', sys_fun, 0.05, sys_st_monitor = 0, known_prob = Msys.p.sum(), sys_st_prob = Msys.p[0], rand_seed = 1)
 
     var_elim_order = [varis['haz'], varis['x0'], varis['x1']]
-    cpm_sys = operation.variable_elim(cpms2, var_elim_order)
+    cpm_sys = inference.variable_elim(cpms2, var_elim_order)
 
     prob_m, cov_m, cint_m = cpm_sys.get_prob_and_cov(['sys'], [0], method='MLE')
     prob_b, cov_b, cint_b = cpm_sys.get_prob_and_cov(['sys'], [0], method='Bayesian') # confidence interval (cint) is more conservative than with MLE
@@ -898,7 +898,7 @@ def sys_3comps():
 def test_sys_max_val1(sys_2comps):
 
     vars_p = sys_2comps
-    M, v = operation.sys_max_val('s', [vars_p['x0'], vars_p['x1']])
+    M, v = inference.sys_max_val('s', [vars_p['x0'], vars_p['x1']])
 
     np.testing.assert_array_equal(M.C, [[0, 0, 0], [1, 1, 4], [2, 2, 10], [1, 0, 1], [2, 3, 2], [3, 6, 3]])
     assert v.values==[0,1,2,3]
@@ -907,7 +907,7 @@ def test_sys_max_val1(sys_2comps):
 def test_sys_max_val2(sys_3comps):
 
     vars_p = sys_3comps
-    M, v = operation.sys_max_val('s', [vars_p['x0'], vars_p['x1'], vars_p['x2']])
+    M, v = inference.sys_max_val('s', [vars_p['x0'], vars_p['x1'], vars_p['x2']])
 
     np.testing.assert_array_equal(M.C, [[0, 0, 0, 0], [1, 1, 4, 2], [2, 2, 10, 2], [1, 0, 1, 2], [2, 3, 2, 2], [3, 6, 3, 2], [1, 0, 0, 1]])
     assert v.values==[0,1,2,3]
@@ -916,7 +916,7 @@ def test_sys_max_val2(sys_3comps):
 def test_sys_min_val1(sys_2comps):
 
     vars_p = sys_2comps
-    M, v = operation.sys_min_val('s', [vars_p['x0'], vars_p['x1']])
+    M, v = inference.sys_min_val('s', [vars_p['x0'], vars_p['x1']])
 
     np.testing.assert_array_equal(M.C, [[0, 0, 14], [1, 1, 13], [2, 2, 9], [0, 5, 0], [1, 2, 1]])
     assert v.values==[0,1,2]
@@ -924,7 +924,7 @@ def test_sys_min_val1(sys_2comps):
 def test_sys_min_val2(sys_3comps):
 
     vars_p = sys_3comps
-    M, v = operation.sys_min_val('s', [vars_p['x0'], vars_p['x1'], vars_p['x2']])
+    M, v = inference.sys_min_val('s', [vars_p['x0'], vars_p['x1'], vars_p['x2']])
 
     np.testing.assert_array_equal(M.C, [[0, 6, 14, 0], [1, 5, 13, 1], [0, 0, 14, 1], [0, 5, 0, 1]])
     assert v.values==[0,1]
@@ -935,10 +935,10 @@ def test_get_inf_vars(setup_hybrid):
     varis, cpms = setup_hybrid
 
     var_elim_order = ['haz', 'x0', 'x1']
-    result = operation.get_inf_vars(cpms, 'sys', ve_ord=var_elim_order)
+    result = inference.get_inf_vars(cpms, 'sys', ve_ord=var_elim_order)
     assert result == ['haz', 'x0', 'x1', 'sys']
 
-    result = operation.get_inf_vars(cpms, ['sys'], ve_ord=var_elim_order)
+    result = inference.get_inf_vars(cpms, ['sys'], ve_ord=var_elim_order)
     assert result == ['haz', 'x0', 'x1', 'sys']
 
 
@@ -981,7 +981,7 @@ def test_variable_elim_cond0(sys_2comps_2haz):
     varis, cpms = sys_2comps_2haz
     ve_order = ['x0', 'x1']
     cpms_ve = [cpms[k] for k in ['sys', 'x0', 'x1']]
-    M = operation.variable_elim_cond(cpms_ve, ve_order, [cpms['h0'], cpms['h1']])
+    M = inference.variable_elim_cond(cpms_ve, ve_order, [cpms['h0'], cpms['h1']])
 
     np.testing.assert_array_equal(M.C, [[0], [1]])
     np.testing.assert_array_almost_equal(M.p, [[0.0898], [0.9102]], decimal=3)
@@ -1013,7 +1013,7 @@ def test_max_flow1(max_flow_net_5_edge):
     od_pair, edges, varis = max_flow_net_5_edge
 
     comps_st = {'e1': 2, 'e2': 2, 'e3': 2, 'e4': 2, 'e5': 2}
-    f_val, sys_st, min_comps_st = operation.max_flow(comps_st, 1, od_pair, edges, varis)
+    f_val, sys_st, min_comps_st = inference.max_flow(comps_st, 1, od_pair, edges, varis)
 
     assert f_val == 1
     assert sys_st == 's'
@@ -1024,7 +1024,7 @@ def test_max_flow2(max_flow_net_5_edge):
     od_pair, edges, varis = max_flow_net_5_edge
 
     comps_st = {'e1': 0, 'e2': 2, 'e3': 2, 'e4': 2, 'e5': 2}
-    f_val, sys_st, min_comps_st = operation.max_flow(comps_st, 1, od_pair, edges, varis)
+    f_val, sys_st, min_comps_st = inference.max_flow(comps_st, 1, od_pair, edges, varis)
 
     assert f_val == 1
     assert sys_st == 's'
@@ -1035,7 +1035,7 @@ def test_max_flow3(max_flow_net_5_edge):
     od_pair, edges, varis = max_flow_net_5_edge
 
     comps_st = {'e1': 0, 'e2': 0, 'e3': 2, 'e4': 2, 'e5': 2}
-    f_val, sys_st, min_comps_st = operation.max_flow(comps_st, 1, od_pair, edges, varis)
+    f_val, sys_st, min_comps_st = inference.max_flow(comps_st, 1, od_pair, edges, varis)
 
     assert f_val == 0
     assert sys_st == 'f'

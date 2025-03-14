@@ -8,7 +8,7 @@ import numpy as np
 import typer
 
 
-from mbnpy import model, config, trans, variable, cpm, operation, brc
+from mbnpy import model, config, trans, variable, cpm, inference, brc
 
 
 HOME = Path(__file__).parent
@@ -127,7 +127,7 @@ def main():
     var_elim = nodes_except_const[:]
     var_elim.remove('x1')
     var_elim = [varis[k] for k in var_elim]
-    M_VE = operation.variable_elim(M, var_elim)
+    M_VE = inference.variable_elim(M, var_elim)
 
     # compute P(x1=1|sys=1) = P(x1, sys) / P(sys)
     pf_sys1 = M_VE.p[M_VE.C[:, 0]==1].sum()

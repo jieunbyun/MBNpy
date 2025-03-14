@@ -5,7 +5,7 @@ from pathlib import Path
 import copy
 import typer
 
-from BNS_JT import trans, branch, variable, cpm, config, operation, brc
+from BNS_JT import trans, branch, variable, cpm, config, inference, brc
 
 HOME = Path(__file__).parent
 
@@ -116,7 +116,7 @@ def main():
 
     cpms_comps = {k: cpms[k] for k in cfg.infra['edges'].keys()}
 
-    cpms_new = operation.prod_Msys_and_Mcomps(cpms['sys'], list(cpms_comps.values()))
+    cpms_new = inference.prod_Msys_and_Mcomps(cpms['sys'], list(cpms_comps.values()))
 
     p_f = cpms_new.get_prob(['sys'], [0])
     p_s = cpms_new.get_prob(['sys'], [1])

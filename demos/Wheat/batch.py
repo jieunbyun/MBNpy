@@ -15,7 +15,7 @@ from scipy import stats
 from itertools import islice
 from typing_extensions import Annotated
 
-from mbnpy import model, config, trans, variable, brc, branch, cpm, operation
+from mbnpy import model, config, trans, variable, brc, branch, cpm, inference
 
 app = typer.Typer()
 
@@ -474,9 +474,9 @@ def inference(file_model: str, file_dmg: str) -> None:
 
     od_name = '_'.join(path_names[0].split('_')[:-1])
     VE_ord = list(cfg.infra['nodes'].keys()) + path_names
-    vars_inf = operation.get_inf_vars(cpms, od_name, VE_ord)
+    vars_inf = inference.get_inf_vars(cpms, od_name, VE_ord)
 
-    Mod = operation.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v != od_name])
+    Mod = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v != od_name])
     #Mod.sort()
 
     plt.figure()
@@ -535,8 +535,8 @@ def reliability(file_model: str, file_dmg: str) -> None:
     paths_rel = {}
     VE_ord = list(cfg.infra['nodes'].keys()) + path_names
     for path in path_names:
-        vars_inf = operation.get_inf_vars(cpms, path, VE_ord)
-        Mpath = operation.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v!=path])
+        vars_inf = inference.get_inf_vars(cpms, path, VE_ord)
+        Mpath = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v!=path])
         paths_rel[path] = Mpath.p[1][0]
 
     fig, ax = plt.subplots()
