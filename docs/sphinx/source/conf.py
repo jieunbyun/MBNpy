@@ -15,9 +15,10 @@ release = '0.1.0'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = [
-    'sphinx.ext.autodoc',  # Auto-generates API docs from docstrings
-    'sphinx.ext.napoleon',  # Supports Google-style and NumPy-style docstrings
-    'sphinx.ext.viewcode',  # Adds links to source code
+    'sphinx.ext.autodoc',     # Auto-generates API docs
+    'sphinx.ext.napoleon',    # Supports Google-style docstrings
+    'sphinx.ext.viewcode',    # Adds source code links
+    'sphinx.ext.githubpages', # Helps with GitHub Pages deployment
 ]
 
 templates_path = ['_templates']
@@ -28,5 +29,5 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
-html_static_path = ['_static']
+html_theme = 'sphinx_rtd_theme'
+html_static_path = []

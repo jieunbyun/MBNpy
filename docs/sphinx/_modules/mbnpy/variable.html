@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mbnpy.variable &mdash; MBNpy 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            MBNpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Documentation</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../variable.html">Variable Module (<cite>variable.py</cite>)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../variable_guide.html">Using the <cite>variable</cite> Module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../modules.html">mbnpy</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">MBNpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mbnpy.variable</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mbnpy.variable</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">chain</span><span class="p">,</span> <span class="n">combinations</span>
+
+<div class="viewcode-block" id="Variable">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable">[docs]</a>
+<span class="k">class</span> <span class="nc">Variable</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;A class to manage information of a variable.</span>
+<span class="sd">    </span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        name (str): name of the variable.</span>
+<span class="sd">        values (list): description of states.</span>
+<span class="sd">        B (list):</span>
+<span class="sd">            Mapping matrix from basic states (columns)</span>
+<span class="sd">            to composite states (rows).</span>
+<span class="sd">            This matrix is automatically generated.</span>
+
+<span class="sd">    Notes:</span>
+<span class="sd">        How to read the mapping matrix:</span>
+<span class="sd">            Each row in the matrix represents a composite state.</span>
+<span class="sd">            Each column represents a basic state.</span>
+
+<span class="sd">            Example: with 3 basic states, the mapping matrix is:</span>
+<span class="sd">                [[1, 0, 0],</span>
+<span class="sd">                 [0, 1, 0],</span>
+<span class="sd">                 [0, 0, 1],</span>
+<span class="sd">                 [1, 1, 0],</span>
+<span class="sd">                 [1, 0, 1],</span>
+<span class="sd">                 [0, 1, 1],</span>
+<span class="sd">                 [1, 1, 1]]</span>
+<span class="sd">            The first row [1, 0, 0] means that State 0 represents</span>
+<span class="sd">            the random variable of being in State 0.</span>
+<span class="sd">            The sixth row [0, 1, 1] means that State 5 represents</span>
+<span class="sd">            the random variable of being in State 1 or State 2.</span>
+<span class="sd">            The seventh row [1, 1, 1] means that State 6 represents</span>
+<span class="sd">            the random variable of being in State 0, 1, or 2.</span>
+
+<span class="sd">        Best practice to set values:</span>
+<span class="sd">            When applicable, lower states represent worse outcomes.</span>
+<span class="sd">            Example: [&#39;failure&#39;, &#39;survival&#39;] since 0 &lt; 1.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[],</span> <span class="n">B_flag</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Initialize the Variable object.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): name of the variable.</span>
+<span class="sd">            values (list or np.ndarray): description of states.</span>
+<span class="sd">            B_flag (str): flag to determine how B is generated.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;name should be a string&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)),</span> \
+            <span class="s1">&#39;values must be a list or np.ndarray&#39;</span>
+        <span class="k">assert</span> <span class="n">B_flag</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="s1">&#39;fly&#39;</span><span class="p">],</span> \
+            <span class="s1">&#39;B_flag must be either auto, store, or fly&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="n">values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span> <span class="o">=</span> <span class="n">B_flag</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">B_flag</span> <span class="o">==</span> <span class="s1">&#39;fly&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="n">B_flag</span> <span class="o">==</span> <span class="s1">&#39;store&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_B</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">B_flag</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_B</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Magic methods</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Variable</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_name</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_values</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Variable(name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s1">, values=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="si">}</span><span class="s1">, B_flag=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">repr</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Variable(name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="si">}</span><span class="s1">, values=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="si">}</span><span class="s1">, B=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_B</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Property for &#39;name&#39;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
+    
+    <span class="nd">@name</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_name</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">),</span> <span class="s1">&#39;name must be a string&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">new_name</span>
+
+    <span class="c1"># Property for &#39;values&#39;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span>
+
+    <span class="nd">@values</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_values</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new_values</span><span class="p">,</span> <span class="nb">list</span><span class="p">),</span> <span class="s1">&#39;values must be a list&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="n">new_values</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_B</span><span class="p">()</span>
+
+    <span class="c1"># Property for &#39;B_flag&#39;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">B_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span>
+
+    <span class="nd">@B_flag</span><span class="o">.</span><span class="n">setter</span>
+    <span class="k">def</span> <span class="nf">B_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_B_flag</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">new_B_flag</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;store&#39;</span><span class="p">,</span> <span class="s1">&#39;fly&#39;</span><span class="p">],</span> \
+            <span class="s1">&#39;B_flag must be either auto, store, or fly&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span> <span class="o">=</span> <span class="n">new_B_flag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_B</span><span class="p">()</span>
+
+    <span class="c1"># Method to generate the mapping matrix</span>
+<div class="viewcode-block" id="Variable.gen_B">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable.gen_B">[docs]</a>
+    <span class="k">def</span> <span class="nf">gen_B</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">chain</span><span class="o">.</span><span class="n">from_iterable</span><span class="p">(</span>
+                <span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">r</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">B</span></div>
+
+    
+    <span class="c1"># Method to update the mapping matrix</span>
+<div class="viewcode-block" id="Variable.update_B">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable.update_B">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_B</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span> <span class="o">==</span> <span class="s1">&#39;store&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_B</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span> <span class="o">==</span> <span class="s1">&#39;fly&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_B_flag</span> <span class="o">==</span> <span class="s1">&#39;auto&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">6</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_B</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_B</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># Property for &#39;B&#39;</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">B</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_B</span>
+                    
+    
+<div class="viewcode-block" id="Variable.get_state">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable.get_state">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_set</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Finds the state index of a given set of basic states.</span>
+
+<span class="sd">        The sets are ordered as follows (cf. gen_B):</span>
+<span class="sd">        [{0}, {1}, ..., {n-1}, {0, 1}, {0, 2}, ..., {n-2, n-1},</span>
+<span class="sd">        {0, 1, 2}, ..., {0, 1, ..., n-1}]</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state_set (set): set of basic states.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            state (int): state index in B matrix of the given set.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state_set</span><span class="p">,</span> <span class="nb">set</span><span class="p">),</span> <span class="s1">&#39;set must be a set&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Find the index directly from B</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">B</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">state_set</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Find the index by calculation</span>
+            <span class="c1"># The number of elements in the target set</span>
+            <span class="n">num_elements</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">state_set</span><span class="p">)</span>
+            <span class="c1"># Number of basic states</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            
+            <span class="c1"># Initialize the state</span>
+            <span class="n">state</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="c1"># Add the number of sets with fewer elements</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_elements</span><span class="p">):</span>
+                <span class="n">state</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">k</span><span class="p">)))</span>
+            <span class="c1"># Find where the target set is in the group</span>
+            <span class="c1"># with &#39;num_elements&#39; elements</span>
+            <span class="n">combinations_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">num_elements</span><span class="p">))</span>
+            
+            <span class="c1"># Convert target_set to a sorted tuple</span>
+            <span class="c1"># to match the combinations</span>
+            <span class="n">target_tuple</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">state_set</span><span class="p">))</span>
+            <span class="c1"># Find the index within the group</span>
+            <span class="n">idx_in_group</span> <span class="o">=</span> <span class="n">combinations_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">target_tuple</span><span class="p">)</span>
+
+            <span class="c1"># Add the position within the group to the state</span>
+            <span class="n">state</span> <span class="o">+=</span> <span class="n">idx_in_group</span>
+
+        <span class="k">return</span> <span class="n">state</span></div>
+
+    
+<div class="viewcode-block" id="Variable.get_set">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable.get_set">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Finds the set of basic states represented by a given state index.</span>
+
+<span class="sd">        The sets are ordered as follows (cf. gen_B):</span>
+<span class="sd">        [{0}, {1}, ..., {n-1}, {0, 1}, {0, 2}, ..., {n-2, n-1},</span>
+<span class="sd">        {0, 1, 2}, ..., {0, 1, ..., n-1}]</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            state (int): state index.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            set (set): set of basic states.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">state</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">),</span> <span class="s1">&#39;state must be an integer&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">B</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">B</span><span class="p">[</span><span class="n">state</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># the number of states</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+            <span class="c1"># Initialize the state tracker</span>
+            <span class="n">current_state</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c1"># Iterate through the group sizes</span>
+            <span class="c1"># (1-element sets, 2-element sets, etc.)</span>
+            <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># Count the number of sets of size k</span>
+                <span class="n">comb_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">k</span><span class="p">)))</span>
+
+                <span class="c1"># Check if the index falls within this group</span>
+                <span class="k">if</span> <span class="n">current_state</span> <span class="o">+</span> <span class="n">comb_count</span> <span class="o">&gt;</span> <span class="n">state</span><span class="p">:</span>
+                    <span class="c1"># If it falls within this group,</span>
+                    <span class="c1"># calculate the exact set</span>
+                    <span class="n">combinations_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">k</span><span class="p">))</span>
+                    <span class="n">set_tuple</span> <span class="o">=</span> <span class="n">combinations_list</span><span class="p">[</span><span class="n">state</span> <span class="o">-</span> <span class="n">current_state</span><span class="p">]</span>
+                    <span class="k">return</span> <span class="nb">set</span><span class="p">(</span><span class="n">set_tuple</span><span class="p">)</span>
+                
+                <span class="c1"># Otherwise, move to the next group</span>
+                <span class="n">current_state</span> <span class="o">+=</span> <span class="n">comb_count</span>
+
+            <span class="c1"># If the index is out of bounds, raise an error</span>
+            <span class="k">raise</span> <span class="ne">IndexError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The given state index must be not greater than </span><span class="si">{</span><span class="mi">2</span><span class="o">**</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+        
+    
+<div class="viewcode-block" id="Variable.get_state_from_vector">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable.get_state_from_vector">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_state_from_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vector</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Finds the state index for a given binary vector.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            vector (list or np.ndarray): binary vector.</span>
+<span class="sd">            1 if the basic state is involved, 0 otherwise.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            state (int): state index.</span>
+<span class="sd">            -1 if the vector is all zeros.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)),</span> \
+            <span class="s1">&#39;vector must be a list or np.ndarray&#39;</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">values</span><span class="p">),</span> \
+            <span class="s1">&#39;vector must have the same length as values&#39;</span>
+
+        <span class="c1"># Count the number of 1&#39;s in the vector</span>
+        <span class="n">num_ones</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+
+        <span class="c1"># Return -1 if the vector is all zeros</span>
+        <span class="k">if</span> <span class="n">num_ones</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
+        
+        <span class="c1"># Number of basic states</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
+
+        <span class="c1"># Initialize the state</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="mi">0</span>        
+        <span class="c1"># Add the number of vectors with fewer 1&#39;s</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_ones</span><span class="p">):</span>
+            <span class="n">state</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">k</span><span class="p">)))</span>
+        
+        <span class="c1"># Find where this vector is in the group with &#39;num_ones&#39; ones</span>
+        <span class="n">one_positions</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span> <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># Find the position of this specific combination in the group</span>
+        <span class="n">combs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">num_ones</span><span class="p">))</span>
+        <span class="n">idx_in_group</span> <span class="o">=</span> <span class="n">combs</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">one_positions</span><span class="p">))</span>
+        
+        <span class="c1"># Add the position within the group to the state</span>
+        <span class="n">state</span> <span class="o">+=</span> <span class="n">idx_in_group</span>
+        
+        <span class="k">return</span> <span class="n">state</span></div>
+
+    
+<div class="viewcode-block" id="Variable.get_Bst_from_Bvec">
+<a class="viewcode-back" href="../../variable.html#mbnpy.variable.Variable.get_Bst_from_Bvec">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_Bst_from_Bvec</span><span class="p">(</span> <span class="bp">self</span><span class="p">,</span> <span class="n">Bvec</span> <span class="p">):</span>
+<span class="w">        </span><span class="sd">&#39;&#39;&#39;Converts a binary vector into its corresponding state index.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">           Bvec (np.ndarray): (x*y*z) binary array.</span>
+<span class="sd">           x is the number of instances for the first Cpm object.</span>
+<span class="sd">           y is the number of instances for the second Cpm object.</span>
+<span class="sd">           z is the number of basic states.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Bst (np.ndarray): (x*y) integer array.</span>
+<span class="sd">            Each element represents the state index of</span>
+<span class="sd">            the corresponding binary vector in Bvec.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">Bst</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">apply_along_axis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_state_from_vector</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">Bvec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Bst</span></div>
+</div>
+
+
+
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, DUCO team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,19 +1,14 @@
-.. MBNpy documentation master file, created by
-   sphinx-quickstart on Sat Mar 15 14:41:23 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+===============================
+MBNpy
+===============================
 
-MBNpy documentation
-===================
-
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
-
+**MBNpy** is a Python toolkit for matrix-based Bayesian network (MBN).
+MBN enables applying Bayesian network for **large-scale systems** (i.e. high-dimensional system events) by providing an alternative **matrix-based representation of probability distributions**.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Documentation
 
+   variable
+   variable_guide
    modules
-
