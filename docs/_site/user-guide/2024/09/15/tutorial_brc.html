@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <title>
+    
+      Tutorial on using the BRC algorithm &middot; mbnpy
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/MBNpy/public/css/poole.css">
+  <link rel="stylesheet" href="/MBNpy/public/css/syntax.css">
+  <link rel="stylesheet" href="/MBNpy/public/css/hyde.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700|Abril+Fatface">
+
+  <script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+  MathJax.Hub.Config({
+      tex2jax: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    });
+</script>
+
+  <!-- Icons -->
+  <link rel="apple-touch-icon-precomposed" sizes="144x144" href="/MBNpy/public/apple-touch-icon-144-precomposed.png">
+                                 <link rel="shortcut icon" href="/MBNpy/public/favicon.ico">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="/atom.xml">
+
+  <style>
+    .footnote {
+      font-size: 0.9em;
+      color: #777;
+    }
+  </style>
+
+</head>
+
+
+  <body>
+
+    <div class="sidebar">
+  <div class="container sidebar-sticky">
+    <div class="sidebar-about">
+      <h1>
+        <a href="/MBNpy">
+          MBNPy
+        </a>
+      </h1>
+      <p class="lead">Risk-informed, white-box decision-making on complex systems</p>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a class="sidebar-nav-item" href="/MBNpy/">Home</a>
+
+      <a class="sidebar-nav-item" href="/MBNpy/sphinx/index.html">Documentation</a>
+
+      
+
+      
+      
+        
+          
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/MBNpy/user_guide.html">User guide</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/MBNpy/case_study.html">Case studies</a>
+          
+        
+      
+        
+          
+            <a class="sidebar-nav-item" href="/MBNpy/publications.html">Publications</a>
+          
+        
+      
+    </nav>
+
+    <p>&copy; 2025. All rights reserved.</p>
+  </div>
+</div>
+
+
+    <div class="content container">
+      <div class="post">
+  <h1 class="post-title">Tutorial on using the BRC algorithm</h1>
+  <span class="post-date">15 Sep 2024</span>
+
+  <p>Tags:
+    
+      <a href="/MBNpy/tag/tutorial">tutorial</a>
+    
+  </p>
+
+  <p>The <em><b>b</b>ranch and bound algorithm for <b>r</b>eliability of <b>c</b>oherent systems</em> (BRC) algorithm <strong>performs system reliability analysis on any general coherent systems.</strong></p>
+
+<p><strong>A coherent system</strong> means a system whose state does not deteriorate when a components state improves, which is a common characteristic of many real-world systems.</p>
+
+<p>The figure below illustrates how the BRC algorithm works.</p>
+<figure> <img src="/MBNpy/assets/img/brc_tutorial/brc.png" style="width: 800px" /> 
+</figure>
+
+<h1 id="code-demonstration">Code demonstration</h1>
+
+<p>The jupyter notebook can be found at <a href="https://github.com/jieunbyun/BNS-JT/blob/python/notebooks/tutorial_brc.ipynb">this BNS-JT GitHub repo</a>.</p>
+
+<h2 id="mbnpy-version">MBNPy version</h2>
+
+<p>The code below is using BNS-JT module’s <strong>v1.0.0.</strong></p>
+
+<p>In case the current version of BNS-JT module does not work, <br />
+the version can be accessed by</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">git</span> <span class="n">clone</span> <span class="o">--</span><span class="n">branch</span> <span class="n">v1</span><span class="p">.</span><span class="mf">0.0</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="o">/</span><span class="n">jieunbyun</span><span class="o">/</span><span class="n">BNS</span><span class="o">-</span><span class="n">JT</span>
+</code></pre></div></div>
+
+<p>or</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">git</span> <span class="n">checkout</span> <span class="n">v1</span><span class="p">.</span><span class="mf">0.0</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">networkx</span> <span class="k">as</span> <span class="n">nx</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">from</span> <span class="nn">BNS_JT</span> <span class="kn">import</span> <span class="n">cpm</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">operation</span>
+<span class="kn">from</span> <span class="nn">networkx.algorithms.flow</span> <span class="kn">import</span> <span class="n">shortest_augmenting_path</span>
+<span class="kn">from</span> <span class="nn">BNS_JT</span> <span class="kn">import</span> <span class="n">brc</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+</code></pre></div></div>
+
+<h2 id="user-input-coherent-system-function">User input: “coherent” system function</h2>
+
+<h3 id="example-network-with-five-edges">Example: Network with five edges</h3>
+
+<h4 id="network-topology">Network topology</h4>
+<p>We analyse the network below.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Network
+</span><span class="n">nodes</span> <span class="o">=</span> <span class="p">{</span><span class="s">'n1'</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+         <span class="s">'n2'</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+         <span class="s">'n3'</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+         <span class="s">'n4'</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)}</span>
+
+<span class="n">edges</span> <span class="o">=</span> <span class="p">{</span><span class="s">'e1'</span><span class="p">:</span> <span class="p">[</span><span class="s">'n1'</span><span class="p">,</span> <span class="s">'n2'</span><span class="p">],</span>
+	     <span class="s">'e2'</span><span class="p">:</span> <span class="p">[</span><span class="s">'n1'</span><span class="p">,</span> <span class="s">'n3'</span><span class="p">],</span>
+	     <span class="s">'e3'</span><span class="p">:</span> <span class="p">[</span><span class="s">'n2'</span><span class="p">,</span> <span class="s">'n3'</span><span class="p">],</span>
+	     <span class="s">'e4'</span><span class="p">:</span> <span class="p">[</span><span class="s">'n2'</span><span class="p">,</span> <span class="s">'n4'</span><span class="p">],</span>
+	     <span class="s">'e5'</span><span class="p">:</span> <span class="p">[</span><span class="s">'n3'</span><span class="p">,</span> <span class="s">'n4'</span><span class="p">]}</span>
+
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="c1"># Draw network
+</span><span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="n">Graph</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+    <span class="n">G</span><span class="p">.</span><span class="n">add_node</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">pos</span><span class="o">=</span><span class="n">nodes</span><span class="p">[</span><span class="n">node</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">pair</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">G</span><span class="p">.</span><span class="n">add_edge</span><span class="p">(</span><span class="o">*</span><span class="n">pair</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+
+<span class="n">pos</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="n">get_node_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s">'pos'</span><span class="p">)</span>
+<span class="n">edge_labels</span><span class="o">=</span><span class="n">nx</span><span class="p">.</span><span class="n">get_edge_attributes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="s">'label'</span><span class="p">)</span>
+<span class="n">nx</span><span class="p">.</span><span class="n">draw</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">with_labels</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">nx</span><span class="p">.</span><span class="n">draw_networkx_edge_labels</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">pos</span><span class="p">,</span> <span class="n">edge_labels</span><span class="o">=</span><span class="n">edge_labels</span><span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<figure>
+<img src="/MBNpy/assets/img/brc_tutorial/network.png" style="width: 500px" />
+</figure>
+
+<h4 id="component-events">Component events</h4>
+
+<p>The state of the five edges are represented by component events.<br />
+The edges take binary-state, 0 for non-functional and 1 for functional.<br /></p>
+
+<p>To use the BRC algorithm, component events need to be defined as a <em>variable.Variable</em> object.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">varis</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">varis</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable</span><span class="p">.</span><span class="n">Variable</span><span class="p">(</span> <span class="n">name</span><span class="o">=</span><span class="n">k</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="c1"># values: edge flow capacity
+</span>
+<span class="k">print</span><span class="p">(</span><span class="n">varis</span><span class="p">[</span><span class="s">'e1'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>'Variable(name=e1, B=[{0}, {1}, {0, 1}], values=[0, 1])'
+</code></pre></div></div>
+
+<p>The probabilities of component events are defined as below:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">probs</span> <span class="o">=</span> <span class="p">{</span><span class="s">'e1'</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">},</span> <span class="s">'e2'</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mf">0.99</span><span class="p">},</span> <span class="s">'e3'</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">},</span>
+         <span class="s">'e4'</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">},</span> <span class="s">'e5'</span><span class="p">:</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mf">0.10</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mf">0.90</span><span class="p">}}</span>
+
+</code></pre></div></div>
+
+<h4 id="system-event">System event</h4>
+
+<p>System state is evaluated by network connectivity between a designed origin-destination (OD) pair. <br />
+In other words, a system state is survival if the OD pair is connected; and failure otherwise.</p>
+
+<div style="margin-top:0;">
+This leads to the system function below. <br />
+<b>NB1</b> <b>The first input</b> of a system function must be <b>a dictionary of components state.</b><br /> 
+<b>NB2</b> <b>The outputs</b> must be three: 
+<ul style="margin-top:0;">
+<li> <em>system value:</em> any format (does not affect the BRC algorithm; just for information's sake); </li>
+<li> <em>system state:</em> a string, either 's' or 'f'; and </li>
+<li> <em>components state that guarantees an obtained system state:</em> a dictionary of affecting components OR (if such information unavailable) None.</li>
+</ul>
+</div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">net_conn</span><span class="p">(</span><span class="n">comps_st</span><span class="p">,</span> <span class="n">od_pair</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">varis</span><span class="p">):</span> <span class="c1"># maximum flow analysis
+</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="n">comps_st</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">G</span><span class="p">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="c1"># we add each edge
+</span>        <span class="n">G</span><span class="p">[</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]][</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]][</span><span class="s">'capacity'</span><span class="p">]</span> <span class="o">=</span> <span class="n">varis</span><span class="p">[</span><span class="n">k</span><span class="p">].</span><span class="n">values</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="c1"># define capacity as 0 if state = 0 or 1 if state = 1
+</span>
+    <span class="c1"># perform maximum flow analysis between the OD pair
+</span>    <span class="n">G</span><span class="p">.</span><span class="n">add_edge</span><span class="p">(</span><span class="n">od_pair</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">'new_d'</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># add a new edge with capacity 1 to ensure we find only ONE path. 
+</span>    <span class="n">f_val</span><span class="p">,</span> <span class="n">f_dict</span> <span class="o">=</span> <span class="n">nx</span><span class="p">.</span><span class="n">maximum_flow</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">od_pair</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">'new_d'</span><span class="p">,</span> <span class="n">capacity</span><span class="o">=</span><span class="s">'capacity'</span><span class="p">,</span> <span class="n">flow_func</span><span class="o">=</span><span class="n">shortest_augmenting_path</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">f_val</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># if the flow between the OD pair is greater than 0, the two nodes are connected
+</span>        <span class="n">sys_st</span> <span class="o">=</span> <span class="s">'s'</span>
+
+        <span class="c1"># We can infer an associated minimum survival rule in case of network connectivity.
+</span>        <span class="n">min_comps_st</span> <span class="o">=</span> <span class="p">{}</span> 
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps_st</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">k_flow</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">f_dict</span><span class="p">[</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]][</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]],</span> <span class="n">f_dict</span><span class="p">[</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]][</span><span class="n">edges</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">]]])</span>
+            <span class="k">if</span> <span class="n">k_flow</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># the edges with flows &gt; 0 consitute a minimum survival rule.
+</span>                <span class="n">min_comps_st</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">sys_st</span> <span class="o">=</span> <span class="s">'f'</span>
+
+        <span class="c1"># In case of system failure, obtaining a minimum failure rule is not straightforward.
+</span>        <span class="n">min_comps_st</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">return</span> <span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span>
+
+</code></pre></div></div>
+
+<p>In this example, we consider the OD pair ‘n1’ and ‘n4’.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">od_pair</span><span class="o">=</span><span class="p">(</span><span class="s">'n1'</span><span class="p">,</span><span class="s">'n4'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>To run the BRC algorithm, a system function needs to have only one input <strong>components state.</strong></p>
+
+<p>This can be done using a lambda function.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sys_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">comps_st</span> <span class="p">:</span> <span class="n">net_conn</span><span class="p">(</span><span class="n">comps_st</span><span class="p">,</span> <span class="n">od_pair</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">varis</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Below are a few examples using the system function.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">comps_st</span> <span class="o">=</span> <span class="p">{</span><span class="s">'e1'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e2'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e3'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e4'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e5'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span> <span class="o">=</span> <span class="n">sys_fun</span><span class="p">(</span><span class="n">comps_st</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1 s {'e1': 1, 'e4': 1}
+</code></pre></div></div>
+
+<p>In the result above, the components state leads to system survival.</p>
+
+<p>We also have the survival rule that if e1 and e4 have a state no less than 1, the system survives regardless of the states of other components.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">comps_st</span> <span class="o">=</span> <span class="p">{</span><span class="s">'e1'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">'e2'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e3'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e4'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e5'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span> <span class="o">=</span> <span class="n">sys_fun</span><span class="p">(</span><span class="n">comps_st</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>1 s {'e2': 1, 'e5': 1}
+</code></pre></div></div>
+
+<p>This time, we obtain a different survival rule because e1 has state 0 and therefore the previous rule no longer applies.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">comps_st</span> <span class="o">=</span> <span class="p">{</span><span class="s">'e1'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">'e2'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">'e3'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e4'</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s">'e5'</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span> <span class="o">=</span> <span class="n">sys_fun</span><span class="p">(</span><span class="n">comps_st</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">f_val</span><span class="p">,</span> <span class="n">sys_st</span><span class="p">,</span> <span class="n">min_comps_st</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>0 f None
+</code></pre></div></div>
+
+<p>This case leads to system failure with e1 and e2 being dysfunctional.</p>
+
+<p>The minimum failure rule is returned None.</p>
+
+<h2 id="application-of-the-brc-algorithm">Application of the BRC algorithm</h2>
+
+<p>Now we run the BRC algorithm.</p>
+
+<p>Below, we set pf_bnd_wr = 0.0, indicating that the algorithm stops when the bound width on system failure probability is 0. <br />
+In other words, the analysis aims for a complete (not approximate) analysis.</p>
+
+<p>We set the other stopping criteria as max_sf=np.inf and max_nb=np.inf. <br />
+The variables indicate the maximum number of system function runs and that of created branches. <br />
+Aiming for a complete analysis, we set both values to infinity.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">brs</span><span class="p">,</span> <span class="n">rules</span><span class="p">,</span> <span class="n">sys_res</span><span class="p">,</span> <span class="n">monitor</span> <span class="o">=</span> <span class="n">brc</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">sys_fun</span><span class="p">,</span> <span class="n">max_sf</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">max_nb</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">pf_bnd_wr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>*** Analysis completed with f_sys runs 8: out_flag = complete ***
+The # of found non-dominated rules (f, s): 8 (4, 4)
+Probability of branchs (f, s, u): (5.1688e-03, 9.95e-01, 0.0000e+00)
+The # of branches (f, s, u), (min, avg) len of rf: 11 (5, 6, 0), (2, 2.50)
+</code></pre></div></div>
+
+<p>The algorithm stops after running the function 8 times, obtaining system failure probability as $5.16 \cdot 10^{-3}$.</p>
+
+<p>The system function has 4 survival rules and 4 failure rules:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">rules</span><span class="p">[</span><span class="s">'s'</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="n">rules</span><span class="p">[</span><span class="s">'f'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[{'e1': 1, 'e4': 1}, {'e2': 1, 'e5': 1}, {'e2': 1, 'e3': 1, 'e4': 1}, {'e1': 1, 'e3': 1, 'e5': 1}]
+[{'e4': 0, 'e5': 0}, {'e1': 0, 'e2': 0}, {'e1': 0, 'e3': 0, 'e5': 0}, {'e2': 0, 'e3': 0, 'e4': 0}]
+</code></pre></div></div>
+
+<p>The system event space is decomposed into 5 failure branches and 6 survival branches.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">brs</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Branch(down={'e1': 1, 'e2': 0, 'e3': 0, 'e4': 1, 'e5': 0}, up={'e1': 1, 'e2': 1, 'e3': 1, 'e4': 1, 'e5': 1}, down_state=s, up_state=s, p=0.9405
+</code></pre></div></div>
+
+<p>One can do further analysis using the branches.</p>
+
+<p>To this end, we can use <em>cpm</em> and <em>variable</em> objects.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">BNS_JT</span> <span class="kn">import</span> <span class="n">cpm</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">varis</span><span class="p">[</span><span class="s">'sys'</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable</span><span class="p">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'sys'</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="s">'f'</span><span class="p">,</span> <span class="s">'s'</span><span class="p">])</span> <span class="c1"># state 0 for failure and 1 for survival
+</span>
+<span class="c1"># probability distributions using CPM
+</span><span class="n">cpms</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="c1"># component events
+</span><span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">cpms</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpm</span><span class="p">.</span><span class="n">Cpm</span><span class="p">(</span> <span class="n">variables</span> <span class="o">=</span> <span class="p">[</span><span class="n">varis</span><span class="p">[</span><span class="n">k</span><span class="p">]],</span> <span class="n">no_child</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">],[</span><span class="mi">1</span><span class="p">]]),</span> <span class="n">p</span><span class="o">=</span><span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="n">probs</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">probs</span><span class="p">[</span><span class="n">k</span><span class="p">][</span><span class="mi">1</span><span class="p">]])</span> <span class="p">)</span>
+
+<span class="c1"># system event
+</span><span class="n">Csys</span><span class="p">,</span> <span class="n">varis</span> <span class="o">=</span> <span class="n">brc</span><span class="p">.</span><span class="n">get_csys</span><span class="p">(</span><span class="n">brs</span><span class="p">,</span> <span class="n">varis</span><span class="p">,</span> <span class="p">{</span><span class="s">'f'</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s">'s'</span><span class="p">:</span> <span class="mi">1</span><span class="p">})</span>
+<span class="k">print</span><span class="p">(</span><span class="n">Csys</span><span class="p">)</span> <span class="c1"># each branch becomes a row in the system's event matrix
+</span><span class="n">psys</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">]</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">Csys</span><span class="p">))</span> <span class="c1"># the system function is determinisitic, i.e. all instances have a probability of 1.
+</span>
+<span class="n">cpms</span><span class="p">[</span><span class="s">'sys'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cpm</span><span class="p">.</span><span class="n">Cpm</span><span class="p">(</span> <span class="p">[</span><span class="n">varis</span><span class="p">[</span><span class="s">'sys'</span><span class="p">]]</span> <span class="o">+</span> <span class="p">[</span><span class="n">varis</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">Csys</span><span class="p">,</span> <span class="n">psys</span> <span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cpms</span><span class="p">[</span><span class="s">'sys'</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[[1 1 2 2 1 2]
+ [1 1 1 2 0 1]
+ [1 0 1 1 1 2]
+ [0 1 2 2 0 0]
+ [0 0 1 1 0 0]
+ [1 0 1 1 0 1]
+ [0 1 0 0 0 1]
+ [1 1 0 1 0 1]
+ [1 0 1 0 2 1]
+ [0 0 0 2 2 2]
+ [0 0 1 0 2 0]]
+Cpm(variables=['sys', 'e1', 'e2', 'e3', 'e4', 'e5'], no_child=1, C=[[1 1 2 2 1 2]
+ [1 1 1 2 0 1]
+ [1 0 1 1 1 2]
+ [0 1 2 2 0 0]
+ [0 0 1 1 0 0]
+ [1 0 1 1 0 1]
+ [0 1 0 0 0 1]
+ [1 1 0 1 0 1]
+ [1 0 1 0 2 1]
+ [0 0 0 2 2 2]
+ [0 0 1 0 2 0]], p=[[1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]
+ [1.]]
+</code></pre></div></div>
+
+<p>For instance, one can compute component importance <br />
+$P(X_n=0 | S=0) = P(X_n=0, S=0) / P(S=0)$ as below.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">get_cim</span><span class="p">(</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">cpms</span><span class="p">,</span> <span class="n">varis</span><span class="p">,</span> <span class="n">pf</span> <span class="p">):</span>
+    <span class="n">var_elim_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">edges</span><span class="p">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">var_elim_names</span><span class="p">.</span><span class="n">remove</span><span class="p">(</span><span class="n">comp_name</span><span class="p">)</span>
+
+    <span class="n">var_elim_order</span> <span class="o">=</span> <span class="p">[</span><span class="n">varis</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">var_elim_names</span><span class="p">]</span>
+
+
+    <span class="n">cpm_s_x</span> <span class="o">=</span> <span class="n">operation</span><span class="p">.</span><span class="n">variable_elim</span><span class="p">(</span> <span class="n">cpms</span><span class="p">,</span> <span class="n">var_elim_order</span> <span class="p">)</span>
+    <span class="n">row_idx</span> <span class="o">=</span> <span class="n">np</span><span class="p">.</span><span class="n">where</span><span class="p">((</span><span class="n">cpm_s_x</span><span class="p">.</span><span class="n">C</span> <span class="o">==</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]).</span><span class="nb">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">p_s0_x0</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">cpm_s_x</span><span class="p">.</span><span class="n">p</span><span class="p">[</span><span class="n">row_idx</span><span class="p">])</span>
+
+    <span class="n">cim</span> <span class="o">=</span> <span class="n">p_s0_x0</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">pf</span>
+
+    <span class="k">return</span> <span class="n">cim</span>
+
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">cims</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">comp_name</span> <span class="ow">in</span> <span class="n">edges</span><span class="p">:</span>
+    <span class="n">cims</span><span class="p">[</span><span class="n">comp_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_cim</span><span class="p">(</span> <span class="n">comp_name</span><span class="p">,</span> <span class="n">cpms</span><span class="p">,</span> <span class="n">varis</span><span class="p">,</span> <span class="n">pf</span> <span class="o">=</span> <span class="mf">5.4114e-03</span> <span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">cims</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="p">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">.</span><span class="n">bar</span><span class="p">(</span> <span class="n">cims</span><span class="p">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">cims</span><span class="p">.</span><span class="n">values</span><span class="p">()</span> <span class="p">)</span>
+<span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>{'e1': 0.03631684961377838, 'e2': 0.03174317182244893, 'e3': 0.059924418819529104, 'e4': 0.9289231991721185, 'e5': 0.9344208522748267}
+</code></pre></div></div>
+
+<figure>
+<img src="/MBNpy/assets/img/brc_tutorial/cims.png" style="width:500px;" />
+</figure>
+
+
+</div>
+    </div>
+
+  </body>
+</html>

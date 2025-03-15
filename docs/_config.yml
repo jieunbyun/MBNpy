@@ -20,8 +20,6 @@ author:
 
 #paginate:         5
 
-
-
 # Paginate for jekyll v3.0
 pagination:
   enabled: true
@@ -37,4 +35,11 @@ plugins:
 
 #plugins_dir:
   #_plugins
+
+# Navigation Links
+nav:
+  - title: "Home"
+    url: "/"
+  - title: "Documentation"
+    url: "/MBNpy/docs/sphinx/index.html"
 
