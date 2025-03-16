@@ -41,5 +41,20 @@ nav:
   - title: "Home"
     url: "/"
   - title: "Documentation"
-    url: "/MBNpy/docs/sphinx/index.html"
+    url: "/MBNpy/docs/sphinx/build/html/index.html"
+
+include:
+  - sphinx/build/html
+  - sphinx/source/_static
+
+include:
+  - sphinx/build/html
+
+defaults:
+  - scope:
+      path: "sphinx/build/html"
+    values:
+      baseurl: "/MBNpy/docs/sphinx"
+
+
 
