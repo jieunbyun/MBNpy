@@ -1,4 +1,4 @@
-I".{<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+I"){<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
 
 <span class="c1"># mbnpy toolkit
@@ -11,7 +11,7 @@
 <p>We use the example reliability block diagram illustrated below, used in Byun et al. (2019).</p>
 
 <figure>
-<img src="/BNS-JT/assets/img/rbd_ex/rbd.jpg" style="width: 600px" />
+<img src="/MBNpy/assets/img/rbd_ex/rbd.jpg" style="width: 600px" />
 </figure>
 
 <p>The network consists of 8 components $X_1, \cdots, X_8$, which take a binary-state, 0 for failure and 1 for survival. <br />
@@ -21,7 +21,7 @@ The component probabilities are statistically independent.</p>
 <p>The system’s state is represented by a random variable $X_9$, whose failure is defined by the disconnection between the source and the sink. <br />
 This relationship leads to the BN graph below.</p>
 
-<figure> <img src="/BNS-JT/assets/img/rbd_ex/rbd_bn.jpg" style="width: 300px" /> </figure>
+<figure> <img src="/MBNpy/assets/img/rbd_ex/rbd_bn.jpg" style="width: 300px" /> </figure>
 
 <p>For decision-making, we are interested in (1) system failure probability and (2) component importance measure.</p>
 
@@ -93,7 +93,7 @@ In other words, <em>no_child</em> lets MBNPy know where to put the conditional b
 <p>Event matrix <em>C</em> and probability vector <em>p</em> go together. <br />
 Each row of the two matrices refer to the same state, where <em>C</em> indicates what the state is and <em>p</em> indicates what the probability is. <br />
 In this case, they are defined as</p>
-<figure> <img src="/BNS-JT/assets/img/rbd_ex/rbd_comp_cpm.JPG" style="width:300px" /> </figure>
+<figure> <img src="/MBNpy/assets/img/rbd_ex/rbd_comp_cpm.JPG" style="width:300px" /> </figure>
 <p>where the figure has been brought from Byun et al. (2019). <br />
 More information is referred to Byun et al. (2019) and/or Byun and Song (2021).</p>
 
@@ -117,7 +117,7 @@ MBNPy encodes a system’s distribution to reduce compuational cost. <br />
 Again, for more information, please refer to the references.</p>
 
 <p>In Byun et al. (2019), a branch and bound algorithm (a system reliability method) is run as below:</p>
-<figure> <img src="/BNS-JT/assets/img/rbd_ex/rbd_bnb.jpg" style="width:400px" /> </figure>
+<figure> <img src="/MBNpy/assets/img/rbd_ex/rbd_bnb.jpg" style="width:400px" /> </figure>
 
 <p>Then, each branch can be represented by a row of <em>C</em> and <em>p</em>. <br />
 For instance, the upper most branch indicates the system fails when $X_8=0$ regardless of other components’ states. <br />
@@ -261,7 +261,7 @@ P(X1=0 | X9=0): 0.10
 </span><span class="n">plt</span><span class="p">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div></div>
 
-<figure> <img src="/BNS-JT/assets/img/rbd_ex/cims.png" style="width: 500px" /> </figure>
+<figure> <img src="/MBNpy/assets/img/rbd_ex/cims.png" style="width: 500px" /> </figure>
 
 <p>The results above show that $X_7$ and $X_8$ most critically affect the system’s failure.</p>
 :ET

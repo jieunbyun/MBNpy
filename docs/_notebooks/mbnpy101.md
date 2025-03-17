@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # mbnpy toolkit
-from BNS_JT import cpm, variable, operation
+from BNS_JT import cpm, variable, inference
 ```
 
 # Objectives: Introduction to using MBNPy
@@ -211,7 +211,7 @@ Now we are ready to perform analysis. We can compute the system's marginal distr
 
 
 ```python
-cpm_sys = operation.variable_elim(cpms, [varis['x1'], varis['x2'], varis['x3'], varis['x4'],
+cpm_sys = inference.variable_elim(cpms, [varis['x1'], varis['x2'], varis['x3'], varis['x4'],
                                          varis['x5'], varis['x6'], varis['x7'], varis['x8']])
 
 print(cpm_sys)
@@ -230,7 +230,7 @@ For instance, for $X_1$:
 
 
 ```python
-cpm_sys_x1 = operation.variable_elim(cpms, [varis['x2'], varis['x3'], varis['x4'],
+cpm_sys_x1 = inference.variable_elim(cpms, [varis['x2'], varis['x3'], varis['x4'],
                                             varis['x5'], varis['x6'], varis['x7'], varis['x8']])
 
 print(cpm_sys_x1)
@@ -258,7 +258,7 @@ We can repeat the process for all components:
 CIMs = {} # component importance measures
 for i in range(n_comp):
     varis_elim = [varis['x'+str(j+1)] for j in range(n_comp) if j != i]
-    cpm_sys_xi = operation.variable_elim(cpms, varis_elim)
+    cpm_sys_xi = inference.variable_elim(cpms, varis_elim)
 
     prob_s0_x0 = cpm_sys_xi.get_prob(['x'+str(i+1), 'x9'], [0,0])
     CIMs['x'+str(i+1)] = prob_s0_x0 / cpm_sys.p[0][0]
