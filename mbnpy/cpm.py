@@ -757,7 +757,7 @@ class Cpm(object):
                  C=var_states,
                  p=np.empty(shape=(var_states.shape[0], 1)))
 
-        is_compat = self.iscompatible(Mc, flag=True)
+        is_compat = self.iscompatible(Mc, composite_state=True)
         idx = np.where(is_compat)[0]
         Msubset = self.get_subset(idx, flag)
 
