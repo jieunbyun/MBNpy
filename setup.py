@@ -6,7 +6,7 @@ def read_requirements():
 
 setup(
     name="mbnpy",
-    version="0.1.0",  # Update version when making changes
+    version="0.1.2",  # Update version when making changes
     author="The DUCO team",
     author_email="ji-eun.byun@glasgow.ac.uk",
     description="MBNpy is a Python package for Bayesian network applications for large-scale system events (i.e. high-dimensional data).",

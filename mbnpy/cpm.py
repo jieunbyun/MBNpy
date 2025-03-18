@@ -74,13 +74,13 @@ class Cpm(object):
             f"    p={self.p},",
         ]
 
-        if self._Cs:
+        if self._Cs.size:
             details.append(f"    Cs={self._Cs},")
-        if self._q:
+        if self._q.size:
             details.append(f"    q={self._q},")
-        if self._ps:
+        if self._ps.size:
             details.append(f"    ps={self._ps},")
-        if self._sample_idx:
+        if self._sample_idx.size:
             details.append(f"    sample_idx={self._sample_idx},")
 
         details.append(")")
@@ -757,7 +757,7 @@ class Cpm(object):
                  C=var_states,
                  p=np.empty(shape=(var_states.shape[0], 1)))
 
-        is_compat = self.iscompatible(Mc, flag=True)
+        is_compat = self.iscompatible(Mc, composite_state=True)
         idx = np.where(is_compat)[0]
         Msubset = self.get_subset(idx, flag)
 
