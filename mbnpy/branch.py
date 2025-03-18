@@ -773,35 +773,6 @@ def branch_and_bound_org(bstars, path_time_idx, arc_cond):
 
     return sb_saved
 
-
-
-def get_cmat_from_branches(branches, variables):
-    """
-    branches: list of tuples (lower, upper, fl, fu)
-    variables: dict of instances of Variable
-    """
-
-    C = np.zeros(shape=(len(branches), len(variables) + 1))
-
-    for i, (lower, upper, fl, fu) in enumerate(branches):
-
-        assert fl == fu
-
-        C[i, 0] = fl
-
-        for j, (k, v) in enumerate(variables.items(), 1):
-
-            joined = v.B[lower[k]].union(v.B[upper[k]])
-
-            #irow = v.B.index(joined)
-
-            C[i, j] = v.B.index(joined)
-
-    C = C.astype(int)
-
-    return C[C[:, 0].argsort()]
-
-
 def mcs_unknown_using_cpms(brs, probs, sys_fun, cpms, sys_name, cov_t, rand_seed=None):
     """
     Perform Monte Carlo simulation for the unknown state.
