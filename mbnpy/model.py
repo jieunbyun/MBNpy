@@ -53,7 +53,7 @@ def get_branches_by_od(cfg):
 
         # system function
         sys_fun = trans.sys_fun_wrap(cfg.infra['G'], od_pair, varis, thres * d_time_itc)
-        brs, rules, _, _ = brc.run(varis=varis, probs=probs, sys_fun=sys_fun, max_nb=cfg.max_branches, max_sf=cfg.max_branches)
+        brs, rules, _, _ = brc.run(probs=probs, sys_fun=sys_fun, max_nb=cfg.max_branches, max_sf=cfg.max_branches)
 
         csys_by_od[k], varis_by_od[k] = brc.get_csys(brs, varis, st_br_to_cs)
 
@@ -113,7 +113,7 @@ def model_given_od_scen(cfg, path_times, od, scen, branches):
     varis[od] = variable.Variable(name=od, values=values)
 
     variables = {k: varis[k] for k in cfg.infra['edges'].keys()}
-    c = branch.get_cmat_from_branches(branches, variables)
+    c = branch.get_cmat(branches, variables)
 
     cpms[od] = cpm.Cpm(variables = [varis[od]] + list(variables.values()),
                        no_child = 1,

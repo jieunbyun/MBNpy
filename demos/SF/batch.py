@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import pdb
 import numpy as np
 
-from BNS_JT import model, config, trans, variable, brc
+from mbnpy import model, config, trans, variable, brc
 
 app = typer.Typer()
 
@@ -76,7 +76,7 @@ def main(max_sf: Annotated[int, typer.Argument()] = 100):
 
     od_pair = ('13', '2')
     sys_fun = trans.sys_fun_wrap(cfg.infra['G'], od_pair, varis)
-    brs, rules, sys_res, _ = brc.run(varis, probs, sys_fun, max_sf=max_sf, max_nb=cfg.max_branches)
+    brs, rules, sys_res, _ = brc.run(probs, sys_fun, max_sf=max_sf, max_nb=cfg.max_branches)
 
     st_br_to_cs = {'f': 0, 's': 1, 'u': 2}
     csys_by_od, varis_by_od = brc.get_csys(brs, varis, st_br_to_cs)

@@ -1,9 +1,9 @@
-import pf_map.batch as pf_map
-import rbd.batch as rbd
-import power_house.batch as power_house
-import routine.batch as routine
-import road.batch as road
-import SF.batch as sf
+from demos.pf_map import batch as pf_map
+from demos.rbd import batch as rbd
+from demos.power_house import batch as power_house
+from demos.routine import batch as routine
+from demos.road import batch as road
+from demos.SF import batch as sf
 
 def test_batch():
 

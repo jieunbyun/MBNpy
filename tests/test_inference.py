@@ -557,7 +557,7 @@ def test_prod_cpm_sys_and_comps():
     #sys_fun = lambda comps_st : conn(comps_st, od_pair, arcs)
     sys_fun = trans.sys_fun_wrap(cfg.infra['G'], od_pair, varis)
 
-    brs, _, _, _ = brc.run(varis, probs, sys_fun, max_sf=1000, max_nb=1000)
+    brs, _, _, _ = brc.run(probs, sys_fun, max_sf=1000, max_nb=1000)
 
     csys_by_od, varis_by_od = brc.get_csys(brs, varis, st_br_to_cs)
 

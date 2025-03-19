@@ -45,7 +45,7 @@ class Cpm(object):
     # Magic methods
     def __hash__(self):
         return hash(self._name)
-    
+
     def __eq__(self, other):
         if isinstance(other, Cpm):
             return (
@@ -85,7 +85,7 @@ class Cpm(object):
 
         details.append(")")
         return "\n".join(details)
-    
+
     # Properties
     @property
     def variables(self):
@@ -286,7 +286,7 @@ class Cpm(object):
                     Cs_new, q_new, ps_new, sample_idx_new = C_prod_Cs(M, self, new_vars)
                     Mprod.Cs, Mprod.q = Cs_new, q_new
                     Mprod.ps, Mprod.sample_idx = ps_new, sample_idx_new
-            
+
             elif M._Cs.size and not self._Cs.size:
                 Cs_new, q_new, ps_new, sample_idx_new = C_prod_Cs(self, M, new_vars)
                 Mprod.Cs, Mprod.q = Cs_new, q_new
@@ -350,7 +350,7 @@ class Cpm(object):
             Mprod.Cs = Mprod.Cs.astype(int)
 
         return  Mprod
-    
+
     def _get_Cnew(self, M, new_vars):
         """
         For internal use in "product" method
@@ -386,7 +386,7 @@ class Cpm(object):
 
                 Bvec = Bvec1 * Bvec2
                 Bst = v.get_Bst_from_Bvec( Bvec )
-                
+
                 Bst_dict[v.name] = Bst
 
             elif new_vars_tf1[k]: # it is in self only
@@ -411,7 +411,7 @@ class Cpm(object):
         Cnew_with_minus1 = np.column_stack( Cnew_list ) 
 
         return Cnew_with_minus1
-    
+
     def _C_prod_C(self, M, new_vars):
         """
         For internal use in "product" method
@@ -447,7 +447,7 @@ class Cpm(object):
 
                 Bvec = Bvec1 * Bvec2
                 Bst = v.get_Bst_from_Bvec( Bvec )
-                
+
                 Bst_dict[v.name] = Bst
 
             elif new_vars_tf1[k]: # it is in self only
@@ -612,7 +612,7 @@ class Cpm(object):
         assert len(set(names)) == len(names), f'names has duplicates: {names}'
 
         return [self.get_names().index(x) for x in names]
-    
+
     def get_col(self, names):
 
         assert isinstance(names, list), f'names should be a list'
@@ -827,11 +827,11 @@ class Cpm(object):
         if Mx.Cs.size: # NB: ps is not properly updated if the corresponding instance is not in C.
 
             Cnew_with_minus1 = _get_Cnew(Mx.Cs, np.array([cnd_states]), Mx.variables, cnd_vars, Mx.variables)
-            
+
             mask = np.sum( Cnew_with_minus1 < 0, axis=1 ) < 1
             Cs_new, ps_new = Cnew_with_minus1[mask], Mx.ps[mask]
             q_new, sample_idx_new = Mx.q[mask], Mx.sample_idx[mask]
-            
+
             Mx.Cs, Mx.q, Mx.ps, Mx.sample_idx = Cs_new, q_new, ps_new, sample_idx_new
 
         return Mx
@@ -1012,7 +1012,7 @@ class Cpm(object):
         cov = std/prob
 
         return prob, cov, cint
-    
+
 def C_prod_C(M1, M2, new_vars):
     """
     Product of two C matrices (i.e. not Cs matrices)
@@ -1071,7 +1071,7 @@ def Cs_prod_Cs(Cs1, Cs2, vars1, vars2, q1, q2, ps1, ps2, sample_idx1, sample_idx
         )
 
     new_vars_tf1, new_vars_idx1 = ismember( new_vars, vars1 )
-    new_vars_tf2, new_vars_idx2 = ismember( new_vars, vars2 )    
+    new_vars_tf2, new_vars_idx2 = ismember( new_vars, vars2 )
 
     # Common variables
     com_vars_idx1, com_vars_idx2 = [], []
@@ -1097,7 +1097,6 @@ def Cs_prod_Cs(Cs1, Cs2, vars1, vars2, q1, q2, ps1, ps2, sample_idx1, sample_idx
 
     for c1, q1, ps1, sidx1 in zip(Cs1, q1, ps1, sample_idx1):
         row_idx2 = np.where(sample_idx2 == sidx1)[0]
-
         for i2 in row_idx2:
             if Cs2[i2][com_vars_idx2] == c1[com_vars_idx1]:
                 cs_new = np.zeros((1, len(new_vars)))
@@ -1106,7 +1105,7 @@ def Cs_prod_Cs(Cs1, Cs2, vars1, vars2, q1, q2, ps1, ps2, sample_idx1, sample_idx
                 for i, idx in Cs_col_map[1]:
                     cs_new[0, i] = Cs2[i2][idx]
 
-                Cs_new = np.vstack([Cs_new, cs_new])    
+                Cs_new = np.vstack([Cs_new, cs_new])
                 qs_new = np.append(qs_new, q1*q2[i2])
                 ps_new = np.append(ps_new, ps1*ps2[i2])
                 sample_idx_new = np.append(sample_idx_new, sidx1)
@@ -1152,7 +1151,7 @@ def _get_Cnew(C1, C2, vars1, vars2, new_vars):
 
             Bvec = Bvec1 * Bvec2
             Bst = v.get_Bst_from_Bvec( Bvec )
-            
+
             Bst_dict[v.name] = Bst
 
         elif new_vars_tf1[k]: # it is in self only

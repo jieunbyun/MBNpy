@@ -414,7 +414,7 @@ def process_node(cfg, node, comps_st_itc, st_br_to_cs, arcs, varis, probs, cpms)
         monitor = {k: v + monitor2[k] for k, v in monitor1.items() if k != 'out_flag'}
         monitor['out_flag'] = [monitor1['out_flag'], monitor2['out_flag']]"""
 
-        brs, rules, sys_res, monitor = brc.run({k: varis[k] for k in arcs.keys()}, probs, sys_fun, cfg.max_sys_fun, cfg.max_branches, cfg.sys_bnd_wr, surv_first=True)
+        brs, rules, sys_res, monitor = brc.run(probs, sys_fun, cfg.max_sys_fun, cfg.max_branches, cfg.sys_bnd_wr, surv_first=True)
 
         csys, varis = brc.get_csys(brs, varis, st_br_to_cs)
         #varis[node] = variable.Variable(node, values = ['f', 's', 'u'])

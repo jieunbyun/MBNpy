@@ -1,4 +1,5 @@
 import pandas as pd
+import pdb
 import copy
 from pathlib import Path
 from collections import Counter
@@ -14,7 +15,7 @@ import time
 from mbnpy import variable, branch
 
 
-def run(probs, sys_fun, rules=None, brs = None, max_sf = np.inf, max_nb = np.inf, pf_bnd_wr=0.0, max_rules = np.inf, surv_first=True, active_decomp = 20, final_decomp = True, display_freq = 200):
+def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=np.inf, surv_first=True, active_decomp=20, final_decomp=True, display_freq=200):
 
     """
     Run the BRC algorithm to find (1) non-dominated rules and
@@ -383,7 +384,7 @@ def run_sys_fn(comp, sys_fun, probs):
         if sys_st == 's':
             rule = {k: v for k, v in comp.items() if v}, sys_st # the rule is the same as up_dict but includes only components whose state is greater than the worst one (i.e. 0)
         else:
-            rule = {k: v for k, v in comp.items() if v < len(probs[k].keys()) - 1}, sys_st # the rule is the same as up_dict but includes only components whose state is less than the best one
+            rule = {k: v for k, v in comp.items() if v < len(probs[k]) - 1}, sys_st # the rule is the same as up_dict but includes only components whose state is less than the best one
 
     return rule, sys_res
 
@@ -394,7 +395,7 @@ def init_branch(probs, rules):
     """
 
     down = {x: 0 for x in probs.keys()}
-    up = {k: len(v.keys()) - 1 for k, v in probs.items()}
+    up = {k: len(v) - 1 for k, v in probs.items()}
 
     down_state = get_state(down, rules)
     up_state = get_state(up, rules)

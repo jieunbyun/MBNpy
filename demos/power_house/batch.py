@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import typer
 import json
 
-from BNS_JT import cpm, variable, inference
+from mbnpy import cpm, variable, inference
 
 HOME = Path(__file__).parent
 

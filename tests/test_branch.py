@@ -231,7 +231,7 @@ def test_get_cmat1(setup_branch):
             'arcs': np.array([1, 2, 3, 4, 5, 6])
             }
 
-    C = branch.get_cmat(branches, [varis[i] for i in info['arcs']], False)
+    C = branch.get_cmat(branches, [varis[i] for i in info['arcs']])
 
     expected = np.array([[3,2,2,3,3,3,3],
                          [1,2,1,3,3,3,3],
@@ -277,7 +277,7 @@ def test_get_cmat2(setup_branch):
         varis[i] = variable.Variable(name=str(i),
             values=['No disruption', 'Disruption'])
 
-    C = branch.get_cmat(branches, [varis[i] for i in info['arcs']], True)
+    C = branch.get_cmat(branches, [varis[i] for i in info['arcs']])
 
     expected = np.array([[3,1,1,3,3,3,3],
                          [1,1,2,3,3,3,3],
@@ -322,7 +322,7 @@ def test_get_cmat1s(setup_branch):
         varis[str(i)] = variable.Variable(name=str(i),
             values=['No disruption', 'Disruption'])
     #pdb.set_trace()
-    C = branch.get_cmat(branches, [varis[i] for i in info['arcs']], False)
+    C = branch.get_cmat(branches, [varis[i] for i in info['arcs']])
 
     expected = np.array([[3,2,2,3,3,3,3],
                          [1,2,1,3,3,3,3],
@@ -387,7 +387,7 @@ def test_branch_and_bound_org():
     assert all([x in sb for x in expected])
 
 
-def test_get_cmat_from_branches():
+def test_get_cmat():
 
     # variables
     variables = {}
@@ -403,7 +403,7 @@ def test_get_cmat_from_branches():
                ({'e1': 1, 'e2': 0, 'e3': 1, 'e4': 0, 'e5': 0, 'e6': 0},
                 {'e1': 1, 'e2': 0, 'e3': 1, 'e4': 1, 'e5': 1, 'e6': 1}, 1, 1)]
 
-    result = branch.get_cmat_from_branches(branches, variables)
+    result = branch.get_cmat(branches, variables)
 
     expected = np.array([[0,0,0,2,2,2,2],
                          [0,1,0,0,2,2,2],
@@ -422,7 +422,7 @@ def test_get_cmat_from_branches():
                ({'e1': 1, 'e2': 0, 'e3': 1, 'e4': 0, 'e5': 0, 'e6': 0},
                 {'e1': 1, 'e2': 0, 'e3': 1, 'e4': 1, 'e5': 1, 'e6': 1}, 1, 1)]
 
-    result = branch.get_cmat_from_branches(branches, variables)
+    result = branch.get_cmat(branches, variables)
 
     expected = np.array([[0,2,0,0,2,2,2],
                          [0,0,0,1,2,2,2],
@@ -560,7 +560,7 @@ def test_branch_and_bound_using_rbd(setup_client, setup_rbd):
         varis[f'e{k}'] = variable.Variable(name=f'e{k}', B=[{0}, {1}, {0, 1}], values=['Surv', 'Fail'])
 
     sb_org = branch.branch_and_bound_org(bstars, path_time_idx, arc_cond)
-    C1 = branch.get_cmat_from_branches(sb_org, varis)
+    C1 = branch.get_cmat(sb_org, varis)
     C1 = C1.astype(int)
     C1 = C1[C1[:, 0].argsort()]
     np.savetxt(HOME.joinpath('./C_rbd_org.txt'), C1, fmt='%d')
@@ -570,7 +570,7 @@ def test_branch_and_bound_using_rbd(setup_client, setup_rbd):
 
     sb = branch.get_sb_saved_from_job(output_path, key)
 
-    C = branch.get_cmat_from_branches(sb, varis)
+    C = branch.get_cmat(sb, varis)
     C = C.astype(int)
     C = C[C[:, 0].argsort()]
     np.savetxt(HOME.joinpath('./C_rbd.txt'), C, fmt='%d')

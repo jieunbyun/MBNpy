@@ -397,7 +397,7 @@ def get_cmat(branches, comp_varis):
     """
     assert isinstance(branches, list), 'branches must be a list'
     assert isinstance(comp_varis, dict), 'comp_var must be a dictionary'
-    
+
     no_comp = len(comp_varis)
 
     C = np.zeros((0, no_comp + 1))

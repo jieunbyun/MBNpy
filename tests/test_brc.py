@@ -84,7 +84,7 @@ def setup_brs(main_sys):
         # Branch and bound
         output_path = Path(__file__).parent
         #pdb.set_trace()
-        brs, rules, sys_res, monitor = brc.run(varis, probs, sys_fun, max_sf=1000, max_nb=100)
+        brs, rules, sys_res, monitor = brc.run(probs, sys_fun, max_sf=1000, max_nb=100)
 
     return varis, brs
 
@@ -382,7 +382,7 @@ def test_run_sys_fn3(main_sys):
     assert sys_res['comp_st_min'].values == [{'e2': 2, 'e6': 2, 'e4': 2}]
     assert rule == ({'e2': 2, 'e6': 2, 'e4': 2}, 's')
 
-
+@pytest.mark.skip('removed')
 def test_get_composite_state1():
 
     varis = {}
@@ -395,6 +395,7 @@ def test_get_composite_state1():
     assert result[1] == 5
 
 
+@pytest.mark.skip('removed')
 def test_get_composite_state2():
 
     #od_pair, arcs, varis = main_sys
@@ -410,6 +411,7 @@ def test_get_composite_state2():
     assert result[1] == 5
 
 
+@pytest.mark.skip('removed')
 def test_get_composite_state3():
 
     #od_pair, arcs, varis = main_sys
@@ -422,7 +424,6 @@ def test_get_composite_state3():
     #expected = [{0}, {1}, {2}, {0, 2}]
     assert compare_list_of_sets(result[0].B, expected)
     assert result[1] == 4
-
 
 
 def test_inference1(setup_inference):
@@ -596,7 +597,7 @@ def test_get_csys2(main_sys_bridge):
 
     # Branch and bound
     output_path = Path(__file__).parent
-    brs, rules, _, _ = brc.run(varis, probs, sys_fun, max_sf=1000, max_nb=1000),
+    brs, rules, _, _ = brc.run(probs, sys_fun, max_sf=1000, max_nb=1000),
 
 
     st_br_to_cs = {'f': 0, 's': 1, 'u': 2}
@@ -769,7 +770,7 @@ def test_proposed_branch_and_bound_using_probs(main_sys):
     # Branch and bound
     output_path = Path(__file__).parent
     #t1 = time.perf_counter()
-    brs, rules, _, monitor = brc.run(varis, probs, sys_fun, max_sf=100, max_nb=100)
+    brs, rules, _, monitor = brc.run(probs, sys_fun, max_sf=100, max_nb=100)
 
     st_br_to_cs = {'f': 0, 's': 1, 'u': 2}
     csys, varis = brc.get_csys(brs, varis, st_br_to_cs)
@@ -855,7 +856,7 @@ def test_get_csys3(main_sys):
     # Branch and bound
     output_path = Path(__file__).parent
     #pdb.set_trace()
-    brs, rules, _, monitor = brc.run(varis, probs, sys_fun, max_sf=100, max_nb=100)
+    brs, rules, _, monitor = brc.run(probs, sys_fun, max_sf=100, max_nb=100)
 
     st_br_to_cs = {'f': 0, 's': 1, 'u': 2}
     #pdb.set_trace()

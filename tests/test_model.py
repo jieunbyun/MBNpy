@@ -98,7 +98,7 @@ def test_get_branches(setup_bridge):
         varis[od] = variable.Variable(name=od, values=values)
 
         variables = {k: varis[k] for k in cfg.infra['edges'].keys()}
-        c = branch.get_cmat_from_branches(value, variables)
+        c = branch.get_cmat(value, variables)
 
         np.testing.assert_array_equal(c, expected[od].C)
 

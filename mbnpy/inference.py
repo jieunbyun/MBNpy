@@ -894,7 +894,7 @@ def max_flow(comps_st, target_flow, od_pair, edges, varis): # maximum flow analy
     target_flow: an integer 
     od_pair: a tuple
     edges: a dictionary of edge connectivities
-    varis: a dictionary of BNS_JT.variable
+    varis: a dictionary of mbnpy.variable
 
     OUTPUT:
     f_val: any quantity that indicates a level of system performance (for user information's sake)
