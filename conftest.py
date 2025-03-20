@@ -1,6 +1,6 @@
 # Import ALL fixtures from 'examples.py'
 from tests.test_trans import data_bridge, setup_bridge, expected_probs
-#from tests.test_operations import setup_sys_rbd
+from tests.test_inference import setup_sys_rbd
 from tests.test_cpm import setup_condition, setup_hybrid
 from tests.test_brc import main_sys, setup_brs, setup_inference
 

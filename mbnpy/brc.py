@@ -1,5 +1,6 @@
 import pandas as pd
 import pdb
+import typing
 import copy
 from pathlib import Path
 from collections import Counter
@@ -361,7 +362,7 @@ def update_rule_set(rules, new_rule):
     return rules
 
 
-def run_sys_fn(comp, sys_fun, probs):
+def run_sys_fn(comp: dict, sys_fun: typing.Callable, probs: dict):
     """
     comp: component vector state in dictionary
     e.g., {'x1': 0, 'x2': 0, ... }
@@ -389,10 +390,12 @@ def run_sys_fn(comp, sys_fun, probs):
     return rule, sys_res
 
 
-def init_branch(probs, rules):
+def init_branch(probs: dict, rules: dict) -> list:
     """
     initialise a branch set (x_min, x_max, s(x_min), s(x_max), 1)
     """
+    assert isinstance(probs, dict)
+    assert isinstance(rules, dict)
 
     down = {x: 0 for x in probs.keys()}
     up = {k: len(v) - 1 for k, v in probs.items()}

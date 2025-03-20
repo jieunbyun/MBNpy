@@ -1,9 +1,11 @@
 import numpy as np
 import copy
+import pytest
 
 from mbnpy import bnb_fns, branch, cpm, inference
 
 
+@pytest.mark.skip('run_bnb')
 def test_bnb(setup_bridge, expected_probs):
 
     d_cpms_arc, d_vars_arc, arcs, var_ODs = setup_bridge

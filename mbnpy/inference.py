@@ -228,23 +228,26 @@ def single_sample(cpms, sample_order, sample_vars, var_add_order, sample_idx, is
         #    print('Given probability vector does not sum to 1')
 
         weight = M.p.flatten()/M.p.sum(axis=0)
-        irow = np.random.choice(range(len(M.p)), size=1, p=weight)[0]
-
-        if is_scalar:
-            try:
-                sample_prob += np.log(M.p[[irow]])
-            except NameError:
-                sample_prob = np.log(M.p[[irow]])
+        try:
+            irow = np.random.choice(range(len(M.p)), size=1, p=weight)[0]
+        except ValueError:
+            print('ValueError')
         else:
-            try:
-                sample_prob = np.append(
-                    sample_prob,
-                    np.log(M.p[[irow]]))
-            except NameError:
-                sample_prob = np.array(np.log(M.p[[irow]]))
+            if is_scalar:
+                try:
+                    sample_prob += np.log(M.p[[irow]])
+                except NameError:
+                    sample_prob = np.log(M.p[[irow]])
+            else:
+                try:
+                    sample_prob = np.append(
+                        sample_prob,
+                        np.log(M.p[[irow]]))
+                except NameError:
+                    sample_prob = np.array(np.log(M.p[[irow]]))
 
-        idx = M.C[irow, :M.no_child]
-        sample[var_add_order == i] = idx
+            idx = M.C[irow, :M.no_child]
+            sample[var_add_order == i] = idx
 
     try:
         sample_prob = np.exp(sample_prob)

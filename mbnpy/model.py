@@ -78,7 +78,7 @@ def get_branches(cfg, path_times):
         fl = trans.eval_sys_state(path_time_idx, lower, 1)
         fu = trans.eval_sys_state(path_time_idx, upper, 1)
 
-        bstars = [(lower, upper, fl, fu)]
+        bstars = [branch.Branch(lower, upper, fl, fu)]
 
         branch.branch_and_bound(bstars, path_time_idx, arc_cond=1, output_path=cfg.output_path, key=cfg.key)
 

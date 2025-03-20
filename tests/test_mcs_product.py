@@ -169,9 +169,13 @@ def test_mcs_product(setup_sys):
                 cpms_cp.insert(0, cpm_mult)
 
     cpm_od1 = cpms_cp[0].product(cpms_cp[1])
+
     # prob disruption
-    assert cpm_od1.p[(cpm_od1.C[:, 1] == 1) | (cpm_od1.C[:, 1] ==2)].sum() == pytest.approx(0.0634, abs=1.0e-4)
+    prob_disruption = cpm_od1.p[(cpm_od1.C[:, 0] == 1) | (cpm_od1.C[:, 0] ==2)].sum()
+    assert prob_disruption == pytest.approx(0.0634, abs=1.0e-4)
+
     # prob disconnection
-    assert cpm_od1.p[cpm_od1.C[:, 1] == 2].sum() == pytest.approx(0.012, abs=1.0e-4)
+    prob_disconnection = cpm_od1.p[cpm_od1.C[:, 0] == 2].sum()
+    assert prob_disconnection == pytest.approx(0.012, abs=1.0e-4)
 
 

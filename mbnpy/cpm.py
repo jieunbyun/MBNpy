@@ -599,7 +599,7 @@ class Cpm(object):
         return is_cmp
 
 
-    def get_col_ind(self, names):
+    def get_col_ind(self, names: list[str]):
         """
         INPUT:
         names: a list of variable names
