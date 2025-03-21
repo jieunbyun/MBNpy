@@ -3,7 +3,7 @@ from itertools import chain, combinations
 
 class Variable(object):
     '''A class to manage information of a variable.
-    
+
     Attributes:
         name (str): name of the variable.
         values (list): description of states.
@@ -39,7 +39,7 @@ class Variable(object):
 
     def __init__(self, name, values=[], B_flag='auto'):
         '''Initialize the Variable object.
-        
+
         Args:
             name (str): name of the variable.
             values (list or np.ndarray): description of states.
@@ -91,7 +91,7 @@ class Variable(object):
     @property
     def name(self):
         return self._name
-    
+
     @name.setter
     def name(self, new_name):
         assert isinstance(new_name, str), 'name must be a string'
@@ -130,7 +130,7 @@ class Variable(object):
             )
         ]
         return B
-    
+
     # Method to update the mapping matrix
     def update_B(self):
         if len(self._values) > 0:
@@ -150,8 +150,8 @@ class Variable(object):
     @property
     def B(self):
         return self._B
-                    
-    
+
+
     def get_state(self, state_set):
         '''Finds the state index of a given set of basic states.
 
@@ -176,7 +176,7 @@ class Variable(object):
             num_elements = len(state_set)
             # Number of basic states
             n = len(self.values)
-            
+
             # Initialize the state
             state = 0
             # Add the number of sets with fewer elements
@@ -185,7 +185,7 @@ class Variable(object):
             # Find where the target set is in the group
             # with 'num_elements' elements
             combinations_list = list(combinations(range(n), num_elements))
-            
+
             # Convert target_set to a sorted tuple
             # to match the combinations
             target_tuple = tuple(sorted(state_set))
@@ -196,7 +196,7 @@ class Variable(object):
             state += idx_in_group
 
         return state
-    
+
     def get_set(self, state):
         '''Finds the set of basic states represented by a given state index.
 
@@ -233,14 +233,14 @@ class Variable(object):
                     combinations_list = list(combinations(range(n), k))
                     set_tuple = combinations_list[state - current_state]
                     return set(set_tuple)
-                
+
                 # Otherwise, move to the next group
                 current_state += comb_count
 
             # If the index is out of bounds, raise an error
             raise IndexError(f"The given state index must be not greater than {2**n-1}")
-        
-    
+
+
     def get_state_from_vector(self, vector):
         '''Finds the state index for a given binary vector.
 
@@ -263,27 +263,27 @@ class Variable(object):
         # Return -1 if the vector is all zeros
         if num_ones == 0:
             return -1
-        
+
         # Number of basic states
         n = len(vector)
 
         # Initialize the state
-        state = 0        
+        state = 0
         # Add the number of vectors with fewer 1's
         for k in range(1, num_ones):
             state += len(list(combinations(range(n), k)))
-        
+
         # Find where this vector is in the group with 'num_ones' ones
         one_positions = [i for i, val in enumerate(vector) if val == 1]
         # Find the position of this specific combination in the group
         combs = list(combinations(range(n), num_ones))
         idx_in_group = combs.index(tuple(one_positions))
-        
+
         # Add the position within the group to the state
         state += idx_in_group
-        
+
         return state
-    
+
     def get_Bst_from_Bvec( self, Bvec ):
         '''Converts a binary vector into its corresponding state index.
 
@@ -300,7 +300,5 @@ class Variable(object):
         '''
         Bst = np.apply_along_axis(self.get_state_from_vector, -1, Bvec)
         return Bst
-
-
 
 

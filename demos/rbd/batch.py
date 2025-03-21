@@ -100,7 +100,7 @@ def main():
         probs[k] = [0.5, 0.5]
 
     sys_fun = trans.sys_fun_wrap(cfg.infra['G'], od_pair, varis)
-    brs, rules, sys_res, _ = brc.run(varis, probs, sys_fun, max_sf=cfg.max_branches, max_nb=cfg.max_branches)
+    brs, rules, sys_res, _ = brc.run(probs, sys_fun, max_sf=cfg.max_branches, max_nb=cfg.max_branches)
 
     csys_by_od, varis_by_od = brc.get_csys(brs, varis, st_br_to_cs)
 

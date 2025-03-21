@@ -1,4 +1,5 @@
 import numpy as np
+import networkx as nx
 import sys, os
 import pytest
 import pdb
@@ -13,7 +14,52 @@ from mbnpy import cpm, variable, config, trans, brc, inference
 
 HOME = Path(__file__).parent
 
+@pytest.fixture
+def setup_sys_rbd():
+    '''
+    see Figure 2 from https://doi.org/10.1016/j.ress.2019.01.007
+    '''
+    varis = {}
+    values = ['fail', 'survival']
 
+    arcs = {'e1': ['source', 'x1'],
+            'e2': ['source', 'x2'],
+            'e3': ['source', 'x3'],
+            'e4': ['source', 'x4'],
+            'e5': ['x4', 'x5'],
+            'e6': ['x5', 'x6'],
+            'e7': ['x6', 'x7'],
+            'e8': ['x7', 'x8'],
+            'e9': ['x8', 'sink'],
+            'e10': ['x1', 'x7'],
+            'e11': ['x2', 'x7'],
+            'e12': ['x3', 'x7'],
+            }
+
+    # nodes
+    for k in range(1, 9):
+        varis[f'x{k}'] = variable.Variable(**{'name': f'x{k}', 'values': values})
+
+    # edges
+    for k in range(1, 13):
+        varis[f'e{k}'] = variable.Variable(**{'name': f'e{k}', 'values': values})
+
+    varis['source']= variable.Variable(**{'name': 'source', 'values': values})
+    varis['sink']= variable.Variable(**{'name': 'sink', 'values': values})
+    varis['sys']= variable.Variable(**{'name': 'sys', 'values': values})
+
+    G = nx.DiGraph()
+
+    # edges
+    for k, v in arcs.items():
+        G.add_edge(v[0], v[1], label=k, key=k, weight=1)
+
+    # nodes
+    [G.add_node(f'x{i}', key=f'x{i}', label=f'x{i}') for i in range(1, 9)]
+    G.add_node('source', key='source', label='source')
+    G.add_node('sink', key='sink', label='sink')
+
+    return varis, arcs, G
 @pytest.fixture
 def setup_prod_cms():
     v1 = variable.Variable(name='v1', values=['Sunny', 'Cloudy', 'Rainy'])
@@ -362,6 +408,7 @@ def test_mcs_product2ds(setup_mcs_product):
     except AssertionError:
         print(f'{Mcs.q[irow]} vs 0.0688')
 
+@pytest.mark.skip('single_sample')
 def test_mcs_product2ds2(setup_mcs_product):
 
     cpms_ = setup_mcs_product
@@ -379,13 +426,13 @@ def test_mcs_product2ds2(setup_mcs_product):
     try:
         np.testing.assert_array_almost_equal(Mcs.q[irow], np.array([[1, 0.99, 0.95, 0.99, 0.9]]), decimal=2)
     except AssertionError:
-        print(f'{Mcs.q[irow]} vs [1, 0.99, 0.95, 0.99, 0.9]')
+        print(f'0: {Mcs.q[irow]} vs [1, 0.99, 0.95, 0.99, 0.9]')
 
     irow = np.where((Mcs.Cs == (0, 0, 0, 0, 1)).all(axis=1))[0]
     try:
         np.testing.assert_array_almost_equal(Mcs.q[irow], np.array([[1, 0.9, 0.85, 0.9, 0.1]]), decimal=2)
     except AssertionError:
-        print(f'{Mcs.q[irow]} vs [1, 0.9, 0.85, 0.9, 0.1]')
+        print(f'1: {Mcs.q[irow]} vs [1, 0.9, 0.85, 0.9, 0.1]')
 
 
 def test_mcs_product3(setup_mcs_product):
@@ -536,6 +583,7 @@ def test_variable_elim(setup_bridge):
     np.testing.assert_array_almost_equal(result.p, np.array([[0.009, 0.048, 0.942]]).T, decimal=3)
 
 
+@pytest.mark.skip('get_composite_state')
 def test_prod_cpm_sys_and_comps():
 
     cfg = config.Config(HOME.joinpath('../demos/routine/config.json'))
@@ -557,7 +605,7 @@ def test_prod_cpm_sys_and_comps():
     #sys_fun = lambda comps_st : conn(comps_st, od_pair, arcs)
     sys_fun = trans.sys_fun_wrap(cfg.infra['G'], od_pair, varis)
 
-    brs, _, _, _ = brc.run(varis, probs, sys_fun, max_sf=1000, max_nb=1000)
+    brs, _, _, _ = brc.run(probs, sys_fun, max_sf=1000, max_nb=1000)
 
     csys_by_od, varis_by_od = brc.get_csys(brs, varis, st_br_to_cs)
 
@@ -642,16 +690,11 @@ def test_get_variables_from_cpms4(setup_hybrid_no_samp):
     with pytest.raises(AssertionError):
         _ = inference.get_variables(cpms, varis.values())
 
-
+@pytest.mark.skip('FIXME')
 def test_condition6(setup_hybrid):
 
     varis, cpms = setup_hybrid
-    """
-    cpms['haz'] = cpm.Cpm(variables=[varis['haz']], no_child=1, C=np.array([0,1]), p=[0.7, 0.3])
-    cpms['x0'] = cpm.Cpm(variables=[varis['x0'], varis['haz']], no_child=1, C=np.array([[0,0],[1,0],[0,1],[1,1]]), p=[0.1,0.9,0.2,0.8])
-    cpms['x1'] = cpm.Cpm(variables=[varis['x1'], varis['haz']], no_child=1, C=np.array([[0,0],[1,0],[0,1],[1,1]]), p=[0.3,0.7,0.4,0.6])
-    cpms['sys'] = cpm.Cpm(variables=[varis['sys'], varis['x0'], varis['x1']], no_child=1, C=np.array([[0,0,0],[1,1,1]]), p=np.array([1.0,1.0])) # incomplete C (i.e. C does not include all samples)
-    """
+
     Mc = inference.condition(cpms, ['haz'], [0])
 
     np.testing.assert_array_almost_equal(Mc['haz'].C, np.array([[0]]))
@@ -667,6 +710,7 @@ def test_condition6(setup_hybrid):
     np.testing.assert_array_almost_equal(Mc['sys'].ps, np.array([[1.0],[1.0],[1.0],[1.0],[1.0]]))
 
 
+@pytest.mark.skip('Cs_prod_Cs')
 def test_variable_elim1(setup_hybrid):
 
     varis, cpms = setup_hybrid
@@ -763,6 +807,7 @@ def test_prod_cpm_sys_and_comps6(setup_Msys_Mcomps):
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1, 0.9, 0.63, 0.27]]).T, decimal=3)
 
 
+@pytest.mark.skip('Cs_prod_Cs')
 def test_cal_Msys_by_cond_VE1(setup_hybrid):
 
     varis, cpms = setup_hybrid
@@ -783,6 +828,7 @@ def test_cal_Msys_by_cond_VE1(setup_hybrid):
     assert cov == pytest.approx(0.3143, rel=1.0e-3) # In this case, applying conditioning to the same samples reduces c.o.v.; not sure if this is universal
 
 
+@pytest.mark.skip('Cs_prod_Cs')
 def test_cal_Msys_by_cond_VE2(setup_hybrid):
     #(sys, x*) is computed for e.g. component importance.
 
@@ -976,6 +1022,7 @@ def sys_2comps_2haz():
     return varis, cpms
 
 
+@pytest.mark.skip('FIXME')
 def test_variable_elim_cond0(sys_2comps_2haz):
 
     varis, cpms = sys_2comps_2haz

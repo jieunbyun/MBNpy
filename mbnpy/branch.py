@@ -31,7 +31,7 @@ def approx_prob_by_comps(down, up, probs):
     """
     p = 1.0
     for k, v in down.items():
-        p *= sum([probs[k][x] for x in range(v, up[k] + 1)])
+       p *= sum([probs[k][x] for x in range(v, up[k] + 1)])
     return p
 
 
@@ -102,7 +102,8 @@ class Branch(object):
                     compat_rules['f'].append(c_rule)
 
         return compat_rules
-    
+
+
     def eval_state( self, rules ):
 
         """
@@ -258,11 +259,12 @@ class Branch(object):
     def from_dict(data):
         return Branch( down = data['down'], up = data['up'], down_state = data['down_state'], up_state = data['up_state'], p = data['p'] )
 
+
 def save_brs_to_parquet(brs_list, file_path):
     """
     Save a list of Branch objects to a .parquet file with efficient handling
     of nested dictionaries by flattening them into columns.
-    
+
     Parameters:
     brs_list (list): A list of Branch objects.
     file_path (str): The full path to save the .parquet file.
@@ -297,10 +299,10 @@ def save_brs_to_parquet(brs_list, file_path):
 def load_brs_from_parquet(file_path):
     """
     Load a list of Branch objects from a .parquet file with flattened 'down' and 'up' data.
-    
+
     Parameters:
     file_path (str): The path to the .parquet file.
-    
+
     Returns:
     list: A list of Branch objects.
     """
@@ -327,69 +329,12 @@ def load_brs_from_parquet(file_path):
     return brs_list
 
 
-class Branch_old(object):
-    """
-
-    Parameters
-    ----------
-    down
-    up
-    isComplete=false # 0 unknown, 1 confirmed
-    down_state # associated system state on the lower bound (if 0, unknown)
-    up_state # associated system state on the upper bound (if 0, unknown)
-    down_val # (optional) a representative value of an associated state
-    up_val # (optional) a representative value of an associated state
-    """
-
-    def __init__(self, down, up, names, is_complete=False, down_state=1, up_state=1, down_val=None, up_val=None):
-
-        self.down = down
-        self.up = up
-        self.is_complete = is_complete
-        self.down_state = down_state
-        self.up_state = up_state
-        self.down_val = down_val
-        self.up_val = up_val
-        self.names = names
-        assert isinstance(down, list), 'down should be a list-like'
-
-        assert isinstance(up, list), 'down should be a list-like'
-
-        assert isinstance(names, list), 'names should be a list'
-
-        assert len(down) == len(up), 'Vectors "down" and "up" must have the same length.'
-
-        assert len(down) == len(names), 'Vectors "down/up" and "names" must have the same length.'
-
-        assert isinstance(is_complete, bool), '"is_complete" must be either true (or 1) or false (or 0)'
-
-        #assert isinstance(down_state, (int, np.int32, np.int64)), '"down_state" must be a positive integer (if to be input).'
-
-        #assert isinstance(up_state, (int, np.int32, np.int64)), '"down_state" must be a positive integer (if to be input).'
-
-    def __repr__(self):
-        return textwrap.dedent(f"""\
-{self.__class__.__name__}(down={self.down}, up={self.up}, is_complete={self.is_complete}, down_state={self.down_state}, up_state={self.up_state}, down_val={self.down_val}, up_val={self.up_val}""")
-
-    def __eq__(self, other):
-        """Overrides the default implementation"""
-        if isinstance(other, Branch_old):
-            return all([self.down == other.down,
-                        self.up == other.up,
-                        self.names == other.names,
-                        self.is_complete == other.is_complete,
-                        self.down_state == other.down_state,
-                        self.up_state == other.up_state])
-
-        return NotImplemented
-
-
 def get_cmat(branches, comp_varis):
     """
     Parameters
     ----------
     branches: list of Branch
-    comp_varis: dictionary of varis of component events
+    comp_varis: dictionary of variables of component events
 
     Returns
     C: C matrix of the system event
@@ -397,7 +342,7 @@ def get_cmat(branches, comp_varis):
     """
     assert isinstance(branches, list), 'branches must be a list'
     assert isinstance(comp_varis, dict), 'comp_var must be a dictionary'
-    
+
     no_comp = len(comp_varis)
 
     C = np.zeros((0, no_comp + 1))
@@ -410,42 +355,37 @@ def get_cmat(branches, comp_varis):
 
         if br.down_state == 's': # survival branch
             c[0] = 1
-        elif br.up_state == 'f': # failure branch            
+        elif br.up_state == 'f': # failure branch
             c[0] = 0
         else: # unknown branch
-            c[0] = 2 
+            c[0] = 2
 
         C = np.vstack((C, c))
         C = C.astype(int)
 
     return C
 
+
 def get_crow(br1, comp_varis):
 
     c_comp = np.zeros((1, len(comp_varis)))
-    
+
     for j, (k, v) in enumerate(comp_varis.items()):
         down = br1.down[k]
         up = br1.up[k]
 
         if up != down:
-            bj = {x for x in range(int(down), int(up+1))}
+            bj = {x for x in range(int(down), int(up + 1))}
             sj = v.get_state(bj)
             c_comp[0][j] = sj
 
         else:
             c_comp[0][j] = up
-    
+
     return c_comp
 
 
-def get_idx(x, flag=False):
-
-    assert isinstance(x, list), 'should be a list'
-    assert all([isinstance(y, Branch_old) for y in x]), 'should contain an instance of Branch'
-    return [i for i, y in enumerate(x) if y.is_complete is flag]
-
-
+'''
 def run_bnb(sys_fn, next_comp_fn, next_state_fn, info, comp_max_states):
     """
     return branch
@@ -518,7 +458,7 @@ def run_bnb(sys_fn, next_comp_fn, next_state_fn, info, comp_max_states):
             incmp_br_idx = get_idx(branches, False)
 
     return branches
-
+'''
 
 def get_sb_saved_from_job(output_path, key):
     '''
@@ -568,7 +508,6 @@ def split(list_a, chunk_size):
 
 def branch_and_bound(bstars, path_time_idx, arc_cond, output_path, key):
     """
-    client:
     bstars:
     path_time_idx:
     g_arc_cond:
@@ -586,13 +525,13 @@ def branch_and_bound(bstars, path_time_idx, arc_cond, output_path, key):
         bstars = [x for result in results for x in result if x not in bstars]
 
         output_file = output_path.joinpath(f'sb_dump_{key}_{i}.json')
-        with open(output_file, 'w') as w:
-            json.dump(bstars, w, indent=4)
+        #with open(output_file, 'w') as w:
+        #    json.dump(bstars, w, indent=4)
 
         print(f'elapsed {i}: {time.perf_counter()-tic:.5f}')
 
         # next iteration
-        bstars = [x for x in bstars if x[2] != x[3]]
+        bstars = [x for x in bstars if x.up_state != x.down_state]
         i += 1
 
 
@@ -614,7 +553,8 @@ def bnb_core(bstars, path_time_idx, arc_cond):
 
 def get_arcs_given_bstar(bstar, path_time_idx, arc_cond):
 
-    lower, upper, _, _ = bstar
+    lower = bstar.down
+    upper = bstar.up
 
     upper_matched = [k for k, v in upper.items() if v == arc_cond]
 
@@ -632,7 +572,8 @@ def get_arcs_given_bstar(bstar, path_time_idx, arc_cond):
 
 def get_arcs_given_bstar_nobreak(bstar, path_time_idx, arc_cond):
 
-    lower, upper, _, _ = bstar
+    lower = bstar.down
+    upper = bstar.up
 
     upper_matched = [k for k, v in upper.items() if v == arc_cond]
 
@@ -654,28 +595,13 @@ def create_arc_state_given_cond(arc, **kwargs):
     return {k:kwargs['value'] if k==arc else v for k, v in kwargs['arc_state'].items()}
 
 
-"""
-def get_set_branches_no_iteration_(bstar, arcs, path_time_idx, arc_cond):
-
-    lower, upper, c_fl, c_fu = bstar
-
-    uppers = [{k:0 if k==arc else v for k, v in upper.items()} for arc in arcs]
-
-    lowers = [lower]
-    [lowers.append({k: 1 if k in arcs[:i] else v for k, v in lower.items()}) for i, _ in enumerate(arcs, 1)]
-
-    fus = [trans.eval_sys_state_given_arc(upper, path_time_idx=path_time_idx, arc_cond=arc_cond) for upper in uppers]
-
-    sb = [(lower, upper, fl, fu) for lower, upper, fl, fu in zip(lowers[:-1], uppers, [c_fl]*len(uppers), fus)]
-    sb.append((lowers[-1], upper, c_fu, c_fu))
-
-    return sb
-"""
-
-
 def get_set_of_branches(bstar, arcs, path_time_idx, arc_cond):
 
-    lower, upper, c_fl, c_fu = bstar
+    lower = bstar.down
+    upper = bstar.up
+    c_fl = bstar.down_state
+    c_fu = bstar.up_state
+
     upper_f = {k: 1 if k in arcs else v for k, v in upper.items()}
 
     sb = []
@@ -683,17 +609,19 @@ def get_set_of_branches(bstar, arcs, path_time_idx, arc_cond):
 
         # set upper_n = 0
         #upper = {k: 0 if k == arc else v for k, v in upper.items()}
-        upper = create_arc_state_given_cond(arc, value=0, arc_state=bstar[1])
+        upper = create_arc_state_given_cond(arc, value=0, arc_state=bstar.up)
 
         fu = trans.eval_sys_state_given_arc(upper, path_time_idx=path_time_idx, arc_cond=arc_cond)
 
-        sb.append((lower, upper, c_fl, fu))
+        #sb.append((lower, upper, c_fl, fu))
+        sb.append(Branch(lower, upper, c_fl, fu))
 
         # set upper_n=1, lower_n = 1 
         lower = create_arc_state_given_cond(arc, value=1, arc_state=lower)
         #lower = {k: 1 if k == arc else v for k, v in lower.items()}
 
-    sb.append((lower, upper_f, c_fu, c_fu))
+    #sb.append((lower, upper_f, c_fu, c_fu))
+    sb.append(Branch(lower, upper_f, c_fu, c_fu))
 
     return sb
 

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import pdb
 import numpy as np
 
-from BNS_JT import model, config, trans, variable
+from mbnpy import model, config, trans, variable
 
 
 HOME = Path(__file__).parent

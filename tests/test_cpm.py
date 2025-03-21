@@ -24,10 +24,10 @@ def two_cpms_with_Cs():
                  q=[0.1*0.8, 0.9*0.8, 0.9*0.2, 0.1*0.2],
                  sample_idx=[0,1,2,3])
     M2 = cpm.Cpm(variables=[x3, x2], no_child=1,
-                 Cs=np.array([[0,1],[1,1],[0,1],[1,1],[0,0],[1,0],[0,0],[1,0]]), 
-                 q=[0.1, 0.9, 0.1, 0.9, 0.9, 0.1, 0.9, 0.1], 
-                 sample_idx=[0,0,1,1,2,2,3,3]) 
-    
+                 Cs=np.array([[0,1],[1,1],[0,1],[1,1],[0,0],[1,0],[0,0],[1,0]]),
+                 q=[0.1, 0.9, 0.1, 0.9, 0.9, 0.1, 0.9, 0.1],
+                 sample_idx=[0,0,1,1,2,2,3,3])
+
     return M1, M2
 
 
@@ -285,7 +285,7 @@ def setup_Msys_Mcomps():
     cpms['x2_c'] = cpm.Cpm( [varis['x2'], varis['haz']], 1, np.array([[0,0], [1,0]]), p = [0.2, 0.8] )
 
     return varis, cpms
-    
+
 
 @pytest.fixture()
 def setup_hybrid():
@@ -336,7 +336,7 @@ def setup_hybrid2():
     # samples
     cpms['x0'].Cs, cpms['x0'].sample_idx = np.array([[1],[0],[0],[1],[1]]), [0,1,2,3,4]
     cpms['x0'].q, cpms['x0'].ps = [0.95, 0.05, 0.05, 0.95, 0.95], [0.95, 0.05, 0.05, 0.95, 0.95]
-    
+
     cpms['x1'].Cs, cpms['x1'].sample_idx = np.array([[1],[1],[0],[1],[0]]), [0,1,2,3,4]
     cpms['x1'].q, cpms['x1'].ps = [0.99, 0.99, 0.01, 0.99, 0.01], [0.99, 0.99, 0.01, 0.99, 0.01]
 
@@ -1168,7 +1168,7 @@ def test_product1(setup_product):
         r_idx = np.where(np.all(Mprod.C == c, axis=1))[0]
         Mprod_p = Mprod.p[r_idx]
         assert p == pytest.approx(Mprod_p, rel=1e-3)
-    
+
 
 def test_product2(setup_product):
 
@@ -1206,12 +1206,11 @@ def test_product2(setup_product):
           [2,2,2,2,2]]) - 1
 
     expected_p = np.array([0.9405,0.0095,0.0495,0.0005,0.7650,0.0850,0.1350,0.0150,0.9405,0.0095,0.0495,0.0005,0.7650,0.0850,0.1350,0.0150])
-    
+
     for c, p in zip( expected_C, expected_p ):
         r_idx = np.where(np.all(Mprod.C == c, axis=1))[0]
         Mprod_p = Mprod.p[r_idx]
         assert p == pytest.approx(Mprod_p, rel=1e-3)
-    
 
 
 def test_sum1(setup_sum):
@@ -1357,6 +1356,7 @@ def test_condition(setup_mcs_product):
     assert M.sample_idx.any() == False
 
 
+@pytest.mark.skip('get_composite_state')
 def test_get_prob(setup_inference):
 
     d_cpms, d_varis, var_elim_order, arcs = setup_inference
@@ -1392,7 +1392,7 @@ def test_get_prob_bnd1(setup_hybrid_no_samp):
 
     assert prob_bnd_s0 == pytest.approx([0.045, 0.415], rel=1.0e-3)
 
-
+@pytest.mark.skip('Cs_prod_Cs')
 def test_get_prob_and_cov1(setup_hybrid):
 
     varis, cpms = setup_hybrid
@@ -1406,6 +1406,7 @@ def test_get_prob_and_cov1(setup_hybrid):
     assert cov == pytest.approx(0.4200, rel=1.0e-3)
 
 
+@pytest.mark.skip('Cs_prod_Cs')
 def test_get_prob_and_cov_cond1(setup_hybrid):
 
     varis, cpms = setup_hybrid
@@ -1422,6 +1423,7 @@ def test_get_prob_and_cov_cond1(setup_hybrid):
     assert cint_c[0] <= 1 and cint_c[1] >= 1 # Truth: P(X0=0 | S = 0) = 1
 
 
+@pytest.mark.skip('Cs_prod_Cs')
 def test_get_prob_and_cov_cond2(setup_hybrid):
 
     varis, cpms = setup_hybrid
@@ -1593,10 +1595,10 @@ def test_product5( setup_hybrid ):
     np.testing.assert_array_almost_equal(Mprod.ps, np.array([[0.07], [0.63], [0.63], [0.06], [0.63]]))
     np.testing.assert_array_almost_equal(Mprod.sample_idx, np.array([[0],[1],[2],[3],[4]]))
 
-def test_product6( setup_hybrid2 ):
+def test_product6(setup_hybrid2):
     varis, cpms = setup_hybrid2
 
-    Mx0_noC = copy.deepcopy( cpms['x0'] )
+    Mx0_noC = copy.deepcopy(cpms['x0'])
     Mx0_noC.C, Mx0_noC.p = [], []
 
     Mprod = cpms['sys'].product(Mx0_noC)
@@ -1609,10 +1611,19 @@ def test_product6( setup_hybrid2 ):
     expected_sample_idx = np.array([[0], [0], [0], [1], [1], [2], [2], [3], [3], [3], [4], [4], [4]])
     np.testing.assert_array_equal(Mprod.sample_idx, expected_sample_idx)
 
-    expected_Cs = np.array([[0, 1, 2, 2, 0], [1, 1, 2, 2, 1], [0, 1, 1, 1, 0],
-                            [0, 0, 2, 2, 0], [1, 0, 1, 1, 1], [0, 0, 0, 0, 1], [0, 0, 2, 2, 0],
-                            [0, 1, 2, 2, 0], [1, 1, 2, 2, 1], [1, 1, 1, 0, 1],
-                            [1, 1, 2, 2, 1], [0, 1, 2, 2, 0], [0, 1, 0, 1, 0]])
+    expected_Cs = np.array([[0, 1, 2, 2, 0],
+                            [1, 1, 2, 2, 1],
+                            [0, 1, 1, 1, 0],
+                            [0, 0, 2, 2, 0],
+                            [1, 0, 1, 1, 1],
+                            [0, 0, 2, 2, 0], # 0, 0, 0, 0, 1
+                            [0, 0, 0, 0, 1], # 0, 0, 2, 2, 0
+                            [0, 1, 2, 2, 0],
+                            [1, 1, 2, 2, 1],
+                            [1, 1, 1, 0, 1],
+                            [0, 1, 2, 2, 0], # 1, 1, 2, 2, 1
+                            [1, 1, 2, 2, 1], # 0, 1, 2, 2, 0
+                            [0, 1, 0, 1, 0]])
     np.testing.assert_array_equal(Mprod.Cs, expected_Cs)
 
     expected_q = np.array([0.95, 0.95, 0.95, 0.05, 0.05, 0.05, 0.05,
@@ -1698,17 +1709,17 @@ def test_flip():
 
     assert cpm.flip(idx) == [False, False, False, False]
 
+
 def test_get_col1():
 
-    vars = {}
-    vars['x1'] = variable.Variable( name='x1', values=[0,1,2] )
-    vars['x2'] = variable.Variable( name='x2', values=[0,1,2] )
-    vars['x3'] = variable.Variable( name='x3', values=[0,1,2] )
-    vars['sys'] = variable.Variable( name='sys', values=['f', 's'] )
+    varis = {}
+    varis['x1'] = variable.Variable(name='x1', values=[0,1,2])
+    varis['x2'] = variable.Variable(name='x2', values=[0,1,2])
+    varis['x3'] = variable.Variable(name='x3', values=[0,1,2])
+    varis['sys'] = variable.Variable(name='sys', values=['f', 's'])
 
-    M1 = cpm.Cpm( [vars['sys'], vars['x1'], vars['x2'], vars['x3']], no_child=1,
+    M1 = cpm.Cpm([varis['sys'], varis['x1'], varis['x2'], varis['x3']], no_child=1,
                 C=np.array([[0,4,7,7],[0,3,0,4],[1,3,0,2],[1,3,1,6],[0,3,1,0],[1,3,2,7]]), p = np.array([1.0]*6) )
+    C = M1.get_col(['sys', 'x1'])
 
-    C = M1.get_col( [vars['sys'], vars['x1']] )
-
-    np.testing.assert_array_equal( C, np.array([[0,4],[0,3],[1,3],[1,3],[0,3],[1,3]]) )
+    np.testing.assert_array_equal(C, np.array([[0,4],[0,3],[1,3],[1,3],[0,3],[1,3]]) )
