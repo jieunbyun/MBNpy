@@ -21,7 +21,8 @@ cd MBNpy
 ```
 
 ## Documentation
-Coming soon.
+For documentation, refer to the [MBNpy docs](https://jieunbyun.github.io/MBNpy-docs/).
+For research news and blog articles, refer to the [MBNpy blog](https://jieunbyun.github.io/MBNpy/).
 
 ## License
 MBNpy is distributed under the MIT License
