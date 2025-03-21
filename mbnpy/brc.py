@@ -16,7 +16,7 @@ import time
 from mbnpy import variable, branch
 
 
-def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=np.inf, surv_first=True, active_decomp=20, final_decomp=True, display_freq=200):
+def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=100, surv_first=True, active_decomp=10, final_decomp=True, display_freq=10):
 
     """
     Run the BRC algorithm to find (1) non-dominated rules and

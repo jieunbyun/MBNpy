@@ -67,21 +67,20 @@ class Cpm(object):
 
     def __repr__(self):
         details = [
-            f"{self.__class__.__name__}(",
-            f"    variables={self.get_names()},",
-            f"    no_child={self.no_child},",
-            f"    C={self.C},",
-            f"    p={self.p},",
+            f"{self.__class__.__name__}(variables={self.get_names()},",
+            f"no_child={self.no_child},",
+            f"C={self.C},",
+            f"p={self.p},",
         ]
 
         if self._Cs.size:
-            details.append(f"    Cs={self._Cs},")
+            details.append(f"Cs={self._Cs},")
         if self._q.size:
-            details.append(f"    q={self._q},")
+            details.append(f"q={self._q},")
         if self._ps.size:
-            details.append(f"    ps={self._ps},")
+            details.append(f"ps={self._ps},")
         if self._sample_idx.size:
-            details.append(f"    sample_idx={self._sample_idx},")
+            details.append(f"sample_idx={self._sample_idx},")
 
         details.append(")")
         return "\n".join(details)
@@ -838,22 +837,24 @@ class Cpm(object):
 
 
     def sort(self):
-
-        if self.sample_idx.size:
-            idx = argsort(self.sample_idx)
-        else:
-            idx = argsort(list(map(tuple, self.C[:, ::-1])))
-
+ 
+        idx = argsort(list(map(tuple, self.C)))
         self.C = self.C[idx, :]
 
         if self.p.size:
             self.p = self.p[idx]
 
+        if self.sample_idx.size:
+            idx_sample = argsort(self.sample_idx)
+
+        if self.Cs.size:
+            self.Cs = self.Cs[idx_sample, :]
+
         if self.q.size:
-            self.q = self.q[idx]
+            self.q = self.q[idx_sample]
 
         if self.sample_idx.size:
-            self.sample_idx = self.sample_idx[idx]
+            self.sample_idx = self.sample_idx[idx_sample]
 
 
     def get_prob_bnd(self, var_inds, var_states, flag=True, cvar_inds=None, cvar_states=None, cflag=True):
@@ -1250,7 +1251,7 @@ def get_value_given_condn(A, condn):
     return val
 
 
-def iscompatible(C, variables, check_vars, check_states, composite_state=False):
+def iscompatible(C, variables, check_vars, check_states, composite_state=True):
     """
     Returns a boolean list
 
