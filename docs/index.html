@@ -6,15 +6,32 @@ pagination:
   enabled: true
 ---
 
-<h1>MBNPy</h1>
+<h1>MBNpy</h1>
 
-<h3>A Python toolkit for risk-informed, white-box decision-making on complex systems</h3>
-<p class="message"> Are you looking for <b>a risk assessment tool that handles simultaneously multiple types of variables AND complex systems?</b> Then MBNPy is the right tool for you! </p>
-  
-<p>As <b>a companion toolkit of <em>matrix-based Bayesian network</em> (MBN)</b>, MBNPy is a probabilistic analysis tool specialised for <b>large-scale, discrete-state system events. </b> <b>MBNPy integrates Bayesian network (BN) and System Reliability methods (SRMs)</b> to address multiple types of variables and complex systems together.</b></p>
+<h3>A Python toolkit for risk assessment in high-dimensional systems</h3>
+
+<p>
+  <b>MBNpy</b> is a Python implementation of the <b>Matrix-based Bayesian Network (MBN)</b> — a scalable Bayesian network (BN) framework designed to handle <b>complex, high-dimensional system events</b>.
+</p>
+
+<p>
+  It focuses on <b>discrete-state component events</b>, which present distinct characteristics compared to continuous-state models.
+</p>
+
+<p>
+  MBNpy enables the construction of <b>interpretable and updatable BN models</b>, even in systems with a large number of components. Its <b>core functionalities</b> include:
+</p>
+
+<div class="message">
+  <ol>
+    <li><b>Encoding high-dimensional system event distributions</b> to enable scalable Bayesian inference.</li>
+    <li><b>Automated encoding algorithms</b> tailored to different types of systems (e.g., parallel/series, multi-state <i>k</i>-out-of-<i>N</i> systems, and general coherent systems).</li>
+    <li>For general system events, <b>interpretability and real-time updates</b> through automatic identification of failure and survival rules.</li>
+  </ol>
+</div>
 
 <h3>Bayesian network</h3>
-Bayesian network (BN) is a probabilistic graphical model that visualises statistical dependencies between variables. A typical BN graph for a system event is as follows:
+BN is a probabilistic graphical model that visualises statistical dependencies between variables. A typical BN graph for a system event is as follows:
 
 <figure>
   <img src="{{site.baseurl}}/assets/img/bn_gen.jpeg" style="width:400px">
@@ -29,9 +46,9 @@ BN is a very useful tool for probabilistic analysis of engineering systems:
 However, <b>the problem arises from the converging structure between components $X_1, \cdots, X_N$ and system $S$.</b> The relationship is defined by the $(N+1)$-dimensional distribution $P(S | X_1, \cdots, X_N)$. <br>
 When a system has 50 binary-state components, there are more than $10^{15}$ possible state combinations; if a combination can be analysed for 0.001 seconds, it takes 35,702 years to complete computation. 
 
-<h3>Matrix-based BN</h3>
+<h3>MBN vs. BN</h3>
 
-MBN and its companion toolkit MBNpy solve this challenge by two approahces:
+MBN solves the challenge by two approahces:
 <div class="message">
   <ol>
     <li>It provides <b>encoding algorithms to quantify $P(S | X_1, \cdots, X_N)$ for various classes of system events.</b> A summary of solvable system classes is available at <a href="http://127.0.0.1:4000/BNS-JT//2024/07/20/mbnpy_systems.html">MBNPy's system catalogue</a>. </li>
@@ -52,6 +69,6 @@ MBN and its companion toolkit MBNpy solve this challenge by two approahces:
 
 <h3>Developers</h3>
 <ul>
-<li><a href=jieunbyun@github.io>Ji-Eun Byun</a>, PhD, University of Glasgow, United Kingdom</li>
+<li><a href=https://jieunbyun.github.io/>Ji-Eun Byun</a>, PhD, University of Glasgow, United Kingdom</li>
 <li>Hyeuk Ryu, PhD, Geoscience Australia, Australia</li>
 </ul>
