@@ -301,4 +301,3 @@ class Variable(object):
         Bst = np.apply_along_axis(self.get_state_from_vector, -1, Bvec)
         return Bst
 
-

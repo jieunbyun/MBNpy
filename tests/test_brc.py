@@ -24,6 +24,59 @@ def compare_list_of_sets(a, b):
 
 
 @pytest.fixture(scope='package')
+def setup_inference(main_sys, setup_brs):
+
+    G, _, arcs, _, _ = main_sys
+
+    d_varis, brs = setup_brs
+    varis = copy.deepcopy(d_varis)
+
+    # Component events
+    cpms = {}
+    for k, v in arcs.items():
+        cpms[k] = cpm.Cpm(variables=[varis[k]],
+                          no_child = 1,
+                          C = np.array([0, 1, 2]),
+                          p = [0.1, 0.2, 0.7])
+
+    st_br_to_cs = {'f': 0, 's': 1, 'u': 2}
+    csys, varis = brc.get_csys(brs, varis, st_br_to_cs)
+
+    # Damage observation
+    C_o = np.array([[0, 0], [1, 0], [2, 0],
+                    [0, 1], [1, 1], [2, 1],
+                    [0, 2], [1, 2], [2, 2]])
+
+    p_o = np.array([0.95, 0.04, 0.01,
+                    0.3, 0.5, 0.2,
+                    0.01, 0.19, 0.8]).T
+
+    for i, k in enumerate(arcs, 1):
+        name = f'o{i}'
+        varis[name] = variable.Variable(name=name, values = [0, 1, 2])
+        cpms[name] = cpm.Cpm(variables=[varis[name], varis[k]], no_child=1, C=C_o, p=p_o)
+
+    # add observations
+    added = np.ones(shape=(csys.shape[0], len(arcs)), dtype=np.int8) * 6
+    csys = np.append(csys, added, axis=1)
+
+    # add sys
+    varis['sys'] = variable.Variable('sys', ['f', 's', 'u'])
+    cpm_sys_vname = [f'e{i}' for i in range(1, len(arcs) + 1)] + [f'o{i}' for i in range(1, len(arcs) + 1)] # observations first, components later
+    cpm_sys_vname.insert(0, 'sys')
+    cpms['sys'] = cpm.Cpm(
+        variables=[varis[k] for k in cpm_sys_vname],
+        no_child = 1,
+        C = csys,
+        p = np.ones((len(csys), 1), int))
+
+    var_elim_order_name = [f'o{i}' for i in range(1, len(arcs) + 1)] + [f'e{i}' for i in range(1, len(arcs) + 1)] # observations first, components later
+    var_elim_order = [varis[k] for k in var_elim_order_name]
+
+    return cpms, varis, var_elim_order, arcs
+
+
+@pytest.fixture(scope='package')
 def main_sys(data_bridge):
 
     node_coords = data_bridge['node_coords']
@@ -380,48 +433,46 @@ def test_run_sys_fn3(main_sys):
     assert sys_res['comp_st_min'].values == [{'e2': 2, 'e6': 2, 'e4': 2}]
     assert rule == ({'e2': 2, 'e6': 2, 'e4': 2}, 's')
 
-@pytest.mark.skip('get_composite_state')
+
 def test_get_composite_state1():
 
     varis = {}
     varis['e1'] = variable.Variable(name='e1', values=[1.5, 0.3, 0.15])
 
-    states = [1, 2]
-    result = variable.get_composite_state(varis['e1'], states)
-    expected = [{0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
-    assert compare_list_of_sets(result[0].B, expected)
-    assert result[1] == 5
+    states = set([1, 2])
+    result = varis['e1'].get_state(states)
+    #expected = [{0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
+    #assert compare_list_of_sets(result[0].B, expected)
+    assert result == 5
 
 
-@pytest.mark.skip('get_composite_state')
 def test_get_composite_state2():
 
     #od_pair, arcs, varis = main_sys
     varis = {}
     varis['e1'] = variable.Variable(name='e1', values=[1.5, 0.3, 0.15])
 
-    states = [1, 2]
-    result = variable.get_composite_state(varis['e1'], states)
+    states = set([1, 2])
+    result = varis['e1'].get_state(states)
 
-    expected = [{0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
+    #expected = [{0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
     #expected = [{0}, {1}, {2}, {1, 2}]
-    assert compare_list_of_sets(result[0].B, expected)
-    assert result[1] == 5
+    #assert compare_list_of_sets(result[0].B, expected)
+    assert result == 5
 
 
-@pytest.mark.skip('get_composite_state')
 def test_get_composite_state3():
 
     #od_pair, arcs, varis = main_sys
     varis = {}
     varis['e1'] = variable.Variable(name='e1', values=[1.5, 0.3, 0.15])
-    states = [0, 2]
-    result = variable.get_composite_state(varis['e1'], states)
+    states = set([0, 2])
+    result = varis['e1'].get_state(states)
 
-    expected = [{0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
+    #expected = [{0}, {1}, {2}, {0, 1}, {0, 2}, {1, 2}, {0, 1, 2}]
     #expected = [{0}, {1}, {2}, {0, 2}]
-    assert compare_list_of_sets(result[0].B, expected)
-    assert result[1] == 4
+    #assert compare_list_of_sets(result[0].B, expected)
+    assert result == 4
 
 
 def test_inference1(setup_inference):
@@ -653,59 +704,6 @@ def main_sys_bridge(data_bridge):
     return od_pair, arcs, varis
 
 
-@pytest.fixture(scope='package')
-def setup_inference(main_sys, setup_brs):
-
-    G, _, arcs, _, _ = main_sys
-
-    d_varis, brs = setup_brs
-    varis = copy.deepcopy(d_varis)
-
-    # Component events
-    cpms = {}
-    for k, v in arcs.items():
-        cpms[k] = cpm.Cpm(variables=[varis[k]],
-                          no_child = 1,
-                          C = np.array([0, 1, 2]),
-                          p = [0.1, 0.2, 0.7])
-
-    st_br_to_cs = {'f': 0, 's': 1, 'u': 2}
-    csys, varis = brc.get_csys(brs, varis, st_br_to_cs)
-
-    # Damage observation
-    C_o = np.array([[0, 0], [1, 0], [2, 0],
-                    [0, 1], [1, 1], [2, 1],
-                    [0, 2], [1, 2], [2, 2]])
-
-    p_o = np.array([0.95, 0.04, 0.01,
-                    0.3, 0.5, 0.2,
-                    0.01, 0.19, 0.8]).T
-
-    for i, k in enumerate(arcs, 1):
-        name = f'o{i}'
-        varis[name] = variable.Variable(name=name, values = [0, 1, 2])
-        cpms[name] = cpm.Cpm(variables=[varis[name], varis[k]], no_child=1, C=C_o, p=p_o)
-
-    # add observations
-    added = np.ones(shape=(csys.shape[0], len(arcs)), dtype=np.int8) * 6
-    csys = np.append(csys, added, axis=1)
-
-    # add sys
-    varis['sys'] = variable.Variable('sys', ['f', 's', 'u'])
-    cpm_sys_vname = [f'e{i}' for i in range(1, len(arcs) + 1)] + [f'o{i}' for i in range(1, len(arcs) + 1)] # observations first, components later
-    cpm_sys_vname.insert(0, 'sys')
-    cpms['sys'] = cpm.Cpm(
-        variables=[varis[k] for k in cpm_sys_vname],
-        no_child = 1,
-        C = csys,
-        p = np.ones((len(csys), 1), int))
-
-    var_elim_order_name = [f'o{i}' for i in range(1, len(arcs) + 1)] + [f'e{i}' for i in range(1, len(arcs) + 1)] # observations first, components later
-    var_elim_order = [varis[k] for k in var_elim_order_name]
-
-    return cpms, varis, var_elim_order, arcs
-
-
 @pytest.fixture()
 def comps_st_dic():
 
@@ -745,7 +743,6 @@ def comps_st_dic():
     return comps_st, expected
 
 
-@pytest.mark.skip('get_composite_state')
 def test_proposed_branch_and_bound_using_probs(main_sys):
     # Branch and bound
     G, od_pair, arcs, d_varis, _ = main_sys
@@ -798,7 +795,6 @@ def test_proposed_branch_and_bound_using_probs(main_sys):
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
 
 
-@pytest.mark.skip('get_composite_state')
 def test_get_csys(setup_brs):
 
     varis, brs = setup_brs
@@ -829,7 +825,6 @@ def test_get_csys(setup_brs):
     assert compare_list_of_sets(csys, expected)
 
 
-@pytest.mark.skip('get_composite_state')
 def test_get_csys3(main_sys):
 
     G, od_pair, arcs, d_varis, _ = main_sys
@@ -887,7 +882,6 @@ def test_get_csys3(main_sys):
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
 
 
-@pytest.mark.skip('get_composite_state')
 def test_inference1(setup_inference):
 
     # case 1: no observatio
@@ -901,7 +895,6 @@ def test_inference1(setup_inference):
     assert pf_sys == pytest.approx(0.1018, rel=1.0e-3)
 
 
-@pytest.mark.skip('get_composite_state')
 def test_inference2(setup_inference):
 
     # case 2: observation
