@@ -1,44 +1,49 @@
 import numpy as np
 from itertools import chain, combinations
 
-class Variable(object):
-    '''A class to manage information of a variable.
+class Variable:
+    """
+    A class to manage information about a variable used in matrix-based Bayesian networks.
 
-    Attributes:
-        name (str): name of the variable.
-        values (list): description of states.
-        B (list):
-            Mapping matrix from basic states (columns)
-            to composite states (rows).
-            This matrix is automatically generated.
+    Attributes
+    ----------
+    name : str
+        Name of the variable.
+    values : list
+        Description of basic states.
+    B : list of set
+        Mapping from basic states to composite states. Each element is a set
+        representing a group of basic states (automatically generated).
 
-    Notes:
-        How to read the mapping matrix:
-            Each row in the matrix represents a composite state.
-            Each column represents a basic state.
+    Notes
+    -----
+    **How to read the mapping matrix:**
 
-            Example: with 3 basic states, the mapping matrix is:
-                [[1, 0, 0],
-                 [0, 1, 0],
-                 [0, 0, 1],
-                 [1, 1, 0],
-                 [1, 0, 1],
-                 [0, 1, 1],
-                 [1, 1, 1]]
-            The first row [1, 0, 0] means that State 0 represents
-            the random variable of being in State 0.
-            The sixth row [0, 1, 1] means that State 5 represents
-            the random variable of being in State 1 or State 2.
-            The seventh row [1, 1, 1] means that State 6 represents
-            the random variable of being in State 0, 1, or 2.
+    Each row in the matrix represents a composite state.
+    Each column corresponds to a basic state.
 
-        Best practice to set values:
-            When applicable, lower states represent worse outcomes.
-            Example: ['failure', 'survival'] since 0 < 1.
-    '''
+    For example, with 3 basic states, the mapping matrix B is:
+    
+        [[1, 0, 0],
+         [0, 1, 0],
+         [0, 0, 1],
+         [1, 1, 0],
+         [1, 0, 1],
+         [0, 1, 1],
+         [1, 1, 1]]
 
-    def __init__(self, name, values=[], B_flag='auto'):
-        '''Initialize the Variable object.
+    - The first row `[1, 0, 0]` means that State 0 includes only State 0.
+    - The sixth row `[0, 1, 1]` means that State 5 includes States 1 and 2.
+    - The last row `[1, 1, 1]` means that State 6 includes all basic states.
+
+    **Best practice when assigning `values`:**
+
+    When applicable, use an ordering where lower indices represent worse outcomes, as some modules assume this ordering.
+    For example: `['failure', 'survival']` since `0 < 1`.
+    """
+
+    def __init__(self, name: str, values: list=[], B_flag: str='auto'):
+        '''Initialise the Variable object.
 
         Args:
             name (str): name of the variable.
@@ -83,9 +88,17 @@ class Variable(object):
 
     def __repr__(self):
         if self._B is None:
-            return repr(f'Variable(name={self._name}, values={self._values}, B_flag={self._B_flag})')
+            return (
+                f"Variable(name={repr(self._name)},\n"
+                f"  values={repr(self._values)},\n"
+                f"  B_flag={repr(self._B_flag)})"
+            )
         else:
-            return repr(f'Variable(name={self._name}, values={self._values}, B={self._B})')
+            return (
+                f"Variable(name={repr(self._name)},\n"
+                f"  values={repr(self._values)},\n"
+                f"  B={repr(self._B)})"
+            )
 
     # Property for 'name'
     @property

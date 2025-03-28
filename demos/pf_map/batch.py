@@ -409,12 +409,12 @@ def process_node(cfg, node, comps_st_itc, st_br_to_cs, arcs, varis, probs, cpms)
         d_time_itc, _, _ = trans.get_time_and_path_multi_dest(comps_st_itc, cfg.infra['G'], node, dests, varis)
         sys_fun = trans.sys_fun_wrap(cfg.infra['G'], {'origin': node, 'dests': dests}, varis, thres * d_time_itc)
 
-        """brs, rules, sys_res1, monitor1 = brc.run( {k: varis[k] for k in arcs.keys()}, probs, sys_fun, 0.01*cfg.max_sys_fun, 0.01*cfg.max_branches, cfg.sys_bnd_wr, surv_first=False)
-        brs, rules, sys_res2, monitor2 = brc.run( {k: varis[k] for k in arcs.keys()}, probs, sys_fun, cfg.max_sys_fun, cfg.max_branches, cfg.sys_bnd_wr, surv_first=True, rules=rules)
+        """brs, rules, sys_res1, monitor1 = brc.run( probs, sys_fun, max_sf=0.01*cfg.max_sys_fun, max_nb=0.01*cfg.max_branches, pf_bnd_wr=cfg.sys_bnd_wr, surv_first=False)
+        brs, rules, sys_res2, monitor2 = brc.run( probs, sys_fun, max_sf=cfg.max_sys_fun, max_nb=cfg.max_branches, pf_bnd_wr=cfg.sys_bnd_wr, surv_first=True, rules=rules)
         monitor = {k: v + monitor2[k] for k, v in monitor1.items() if k != 'out_flag'}
         monitor['out_flag'] = [monitor1['out_flag'], monitor2['out_flag']]"""
 
-        brs, rules, sys_res, monitor = brc.run(probs, sys_fun, cfg.max_sys_fun, cfg.max_branches, cfg.sys_bnd_wr, surv_first=True)
+        brs, rules, sys_res, monitor = brc.run(probs, sys_fun, max_sf=cfg.max_sys_fun, max_nb=cfg.max_branches, pf_bnd_wr=cfg.sys_bnd_wr, surv_first=True)
 
         csys, varis = brc.get_csys(brs, varis, st_br_to_cs)
         #varis[node] = variable.Variable(node, values = ['f', 's', 'u'])
@@ -533,7 +533,7 @@ def debug():
 
 
 @app.command()
-def main(file_cfg, eq_name):
+def main(file_cfg=HOME.joinpath('./input/config.json'), eq_name='s1'):
 
     cfg = config_custom(file_cfg, eq_name)
 
@@ -565,7 +565,7 @@ def main(file_cfg, eq_name):
 
     # Run the analysis in parallel
     futures = []
-    with concurrent.futures.ProcessPoolExecutor() as exec:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as exec:
         for node in cfg.infra['nodes'].keys():
         #for node in ['n15', 'n53']: # for test
             res1 = exec.submit(process_node, cfg, node, comps_st_itc, st_br_to_cs, arcs, varis, probs, cpms)
@@ -676,4 +676,5 @@ def parallel():
 
 
 if __name__ == '__main__':
-    app()
+    #app()
+    main()

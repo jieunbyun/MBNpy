@@ -8,9 +8,9 @@ highlighter:      rouge
 #relative_permalinks: true
 
 # Setup
-title:            MBNPy
+title:            MBNpy
 tagline:          'mbnpy'
-description:      'Risk-informed, white-box decision-making on complex systems'
+description:      'Scalable Baeysian network for complex systems'
 domain:           jieunbyun.github.io/MBNpy
 url:              "https://jieunbyun.github.io"
 baseurl:          "/MBNpy"
