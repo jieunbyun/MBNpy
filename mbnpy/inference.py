@@ -419,7 +419,7 @@ def isinscope(idx, cpms):
     isin = np.zeros((len(cpms), 1), dtype=bool)
 
     for i in idx:
-        
+
         if isinstance(i, str):
             flag = np.array([cpm.ismember([i], [x.name for x in M.variables])[0] for M in cpms])
         else:
@@ -889,12 +889,13 @@ def sys_min_val(name, vars_p, B_flag='store'):
 
     return cpm_new, var_new
 
+
 def max_flow(comps_st, target_flow, od_pair, edges, varis): # maximum flow analysis
 
     """
     INPUT:
     comps_st: a dictionary of component states
-    target_flow: an integer 
+    target_flow: an integer
     od_pair: a tuple
     edges: a dictionary of edge connectivities
     varis: a dictionary of mbnpy.variable
@@ -921,7 +922,7 @@ def max_flow(comps_st, target_flow, od_pair, edges, varis): # maximum flow analy
     varis = {}
     for k, v in edges.items():
         varis[k] = variable.Variable( name=k, values = [0, 1, 2]) # values: edge flow capacity
-    """   
+    """
 
     G = nx.Graph()
     for k,x in comps_st.items():
@@ -945,3 +946,4 @@ def max_flow(comps_st, target_flow, od_pair, edges, varis): # maximum flow analy
         min_comps_st = None
 
     return f_val, sys_st, min_comps_st
+

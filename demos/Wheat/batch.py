@@ -37,12 +37,7 @@ def k_shortest_paths(G, source, target, k, weight=None):
     )
 
 
-def update_nodes_given_dmg(file_dmg: str, nodes: dict, valid_paths) -> None:
-
-    # selected nodes
-    sel_nodes = [x for _, v in valid_paths.items() for x in v['path']]
-    to_be_removed = set(nodes.keys()).difference(sel_nodes)
-    [nodes.pop(k) for k in to_be_removed]
+def read_file_dmg(file_dmg: str) -> pd.DataFrame:
 
     # assign cpms given scenario
     if file_dmg.endswith('csv'):
@@ -50,6 +45,7 @@ def update_nodes_given_dmg(file_dmg: str, nodes: dict, valid_paths) -> None:
         probs.index = probs.index.astype('str')
 
     elif file_dmg.endswith('json'):
+        # shakecast output
         with open(file_dmg, 'rb') as f:
             tmp = json.load(f)
 
@@ -71,6 +67,19 @@ def update_nodes_given_dmg(file_dmg: str, nodes: dict, valid_paths) -> None:
     # failiure defined 
     probs['failure'] = probs['Extensive'] + probs['Complete']
     probs = probs.to_dict('index')
+
+    return probs
+
+
+def update_nodes_given_dmg(file_dmg: str, nodes: dict, valid_paths) -> None:
+
+    # selected nodes
+    sel_nodes = [x for _, v in valid_paths.items() for x in v['path']]
+    to_be_removed = set(nodes.keys()).difference(sel_nodes)
+    [nodes.pop(k) for k in to_be_removed]
+
+    # assign cpms given scenario
+    probs = read_file_dmg(file_dmg)
 
     for k, v in nodes.items():
         try:
@@ -297,7 +306,6 @@ def plot():
     config.plot_graphviz(cfg.infra['G'], outfile=HOME.joinpath('wheat_graph'))
 
 
-
 def get_vari_cpm_given_path(route, edge_names, weight):
 
     name = '_'.join((*od_pair, str(idx)))
@@ -321,6 +329,160 @@ def get_vari_cpm_given_path(route, edge_names, weight):
     cpm = {name: cpm.Cpm(variables = [varis[name]] + [varis[n] for n in path], no_child=1, C=Cpath, p=ppath)}
 
     return vari, cpm
+
+
+def sys_fun(comps_st, G, threshold, od_pair, d_time_itc):
+    G_tmp = G.copy()
+
+    for br, st in comps_st.items():
+        if st == 0:
+            for neigh in G.neighbors(br):
+                G_tmp[br][neigh]['weight'] = float('inf')
+
+    d_time = nx.shortest_path_length(G_tmp, source=od_pair[0], target=od_pair[1], weight='weight')
+
+    if d_time > threshold*d_time_itc:
+        sys_st = 'f'
+        min_comps_st = None
+    else:
+        sys_st = 's'
+
+        path = nx.shortest_path(G_tmp, source=od_pair[0], target=od_pair[1], weight='weight')
+        min_comps_st = {node: 1 for node in path if node in comps_st.keys()}
+
+    return d_time, sys_st, min_comps_st
+
+
+@app.command()
+def setup_model_brc(file_dmg: str,
+                    key: str='York-Merredin',
+                    route_file: str=None) -> str:
+
+    cfg = config.Config(HOME.joinpath('./config.json'))
+
+    od_pair = cfg.infra['ODs'][key]
+    od_name = '_'.join(od_pair)
+
+    probs = read_file_dmg(file_dmg)
+
+    # variables
+    cpms, varis = {}, {}
+    for k in cfg.infra['nodes'].keys():
+
+        varis[k] = variable.Variable(name=k, values = ['f', 's'])
+        try:
+            pf = probs[k]['failure']
+        except KeyError:
+            pf = 0.0
+        finally:
+            cpms[k] = cpm.Cpm(variables=[varis[k]], no_child=1, C=np.array([[0], [1]]), p=[pf, 1-pf])
+
+    G = cfg.infra['G']
+    d_time_itc = nx.shortest_path_length(G, source=od_pair[0], target=od_pair[1], weight='weight')
+
+    sf_brc = lambda comps_st: sys_fun(comps_st, cfg.infra['G'], cfg.data['THRESHOLD'], od_pair, d_time_itc)
+    probs_brc = {k: {0: cpms[k].p[0][0], 1: cpms[k].p[1][0]} for k in cfg.infra['nodes'].keys()}
+
+    brs, rules, sys_res, monitor = brc.run(probs_brc, sf_brc,
+                                       pf_bnd_wr=0.05, max_rules=10, surv_first=True,
+                                       active_decomp=10, display_freq=5)
+
+    """
+    # variables
+    cpms = {}
+    varis = {k: variable.Variable(name=k, values = ['f', 's'])
+             for k in cfg.infra['nodes'].keys()}
+
+    G = cfg.infra['G']
+    d_time_itc = nx.shortest_path_length(G, source=od_pair[0], target=od_pair[1], weight='weight')
+
+    if route_file:
+        with open(route_file, 'r') as f:
+            selected_paths = json.load(f)
+
+        selected_paths = [item for item in selected_paths.values()]
+
+    else:
+        try:
+            no_paths = cfg.data['NO_PATHS']
+        except KeyError:
+            selected_paths = nx.all_simple_paths(G, od_pair[0], od_pair[1])
+        else:
+            selected_paths = k_shortest_paths(G, source=od_pair[0], target=od_pair[1], k=no_paths, weight='weight')
+
+    valid_paths = []
+    for path in selected_paths:
+        # Calculate the total weight of the path
+        path_edges = [(u, v) for u, v in zip(path[:-1], path[1:])]
+        path_weight = sum(G[u][v]['weight'] for u, v in path_edges)
+
+        # if takes longer than thres * d_time_itc, we consider the od pair is disconnected; moved to config
+        if path_weight < cfg.data['THRESHOLD'] * d_time_itc:
+
+            # Collect the edge names if they exist, otherwise just use the edge tuple
+            edge_names = [G[u][v].get('key', (u, v)) for u, v in path_edges]
+            valid_paths.append((path, edge_names, path_weight))
+
+    # Sort valid paths by weight
+    valid_paths = sorted(valid_paths, key=lambda x: x[2])
+
+    # convert to namedtuple
+    keys = ['path', 'edges', 'weight']
+    valid_paths = {'_'.join((*od_pair, str(i))): dict(zip(keys, item)) for i, item in enumerate(valid_paths)}
+    path_names = list(valid_paths.keys())
+
+    for name, route in valid_paths.items():
+
+        varis[name] = variable.Variable(name=name, values = [np.inf, route['weight']])
+
+        n_child_p1 = len(route['path']) + 1
+
+        # Event matrix of series system
+        # Initialize an array of shape (n+1, n+1) filled with 1
+        Cpath = np.ones((n_child_p1, n_child_p1), dtype=int)
+        for i in range(1, n_child_p1):
+            Cpath[i, 0] = 0
+            Cpath[i, i] = 0 # Fill the diagonal below the main diagonal with 0
+            Cpath[i, i + 1:] = 2 # Fill the lower triangular part (excluding the diagonal) with 2
+
+        #for i in range(1, n_edge + 1):
+        ppath = np.ones(n_child_p1)
+        cpms[name] = cpm.Cpm(variables = [varis[name]] + [varis[n] for n in route['path']],
+                             no_child=1, C=Cpath, p=ppath)
+
+    # create varis, cpms for od_pair
+    vals = [np.inf] + [varis[p].values[1] for p in path_names[::-1]]
+    varis[od_name] = variable.Variable(name=od_name, values=vals)
+
+    n_path = len(path_names)
+    Csys = np.zeros((n_path + 1, n_path + 1), dtype=int)
+    for i in range(n_path):
+        Csys[i, 0] = n_path - i
+        Csys[i, i + 1] = 1
+        Csys[i, i + 2:] = 2
+    psys = np.ones(n_path + 1)
+    cpms[od_name] = cpm.Cpm(variables = [varis[od_name]] + [varis[p] for p in path_names], no_child=1, C=Csys, p=psys)
+
+    # save 
+    output_model = cfg.output_path.joinpath(f'model_{od_name}_{len(valid_paths)}.pk')
+    with open(output_model, 'wb') as f:
+        dump = {'cpms': cpms,
+                'varis': varis,
+                'valid_paths': valid_paths,
+                'cfg': cfg}
+        pickle.dump(dump, f)
+    print(f'{output_model} saved')
+
+    # route_file
+    if not route_file:
+        route_for_dictions = {k: v['path'] for k, v in valid_paths.items()}
+        file_output = cfg.output_path.joinpath(f'model_{od_name}_{len(valid_paths)}.json')
+        with open(file_output, 'w') as f:
+            json.dump(route_for_dictions, f, indent=4)
+        print(f'{file_output} saved')
+
+    return output_model
+    """
 
 
 @app.command()
@@ -427,6 +589,7 @@ def setup_model(key: str='Wooroloo-Merredin',
 
     return output_model
 
+
 @app.command()
 def single(key: str,
           file_dmg: str,
@@ -438,9 +601,9 @@ def single(key: str,
     """
     file_model = setup_model(key=key, route_file=route_file)
 
-    reliability(file_model=file_model, file_dmg=file_dmg)
+    run_reliability(file_model=file_model, file_dmg=file_dmg)
 
-    inference(file_model=file_model, file_dmg=file_dmg)
+    run_inference(file_model=file_model, file_dmg=file_dmg)
 
 
 @app.command()
@@ -449,12 +612,11 @@ def batch(file_dmg: str):
     cfg = config.Config(HOME.joinpath('./config.json'))
 
     for key in cfg.infra['ODs']:
-        batch(file_dmg, key)
-
+        single(file_dmg, key)
 
 
 @app.command()
-def inference(file_model: str, file_dmg: str) -> None:
+def run_inference(file_model: str, file_dmg: str) -> None:
 
     with open(file_model, 'rb') as f:
         dump = pickle.load(f)
@@ -470,7 +632,8 @@ def inference(file_model: str, file_dmg: str) -> None:
 
     for k, v in cfg.infra['nodes'].items():
         cpms[k] = cpm.Cpm(variables = [varis[k]], no_child=1,
-                            C = np.array([0, 1]).T, p = [v['failure'], 1 - v['failure']])
+                          C = np.array([0, 1]).T,
+                          p = [v['failure'], 1 - v['failure']])
 
     od_name = '_'.join(path_names[0].split('_')[:-1])
     VE_ord = list(cfg.infra['nodes'].keys()) + path_names
@@ -497,8 +660,9 @@ def inference(file_model: str, file_dmg: str) -> None:
 
     # create shp file
     json_file = Path(file_model).parent.joinpath(Path(file_model).stem + '_direction.json')
-    outfile = cfg.output_path.joinpath(f'{Path(file_model).stem}_{Path(file_dmg).stem}_direction.shp')
-    create_shpfile(json_file, prob_by_path, outfile)
+    if json_file.exists():
+        outfile = cfg.output_path.joinpath(f'{Path(file_model).stem}_{Path(file_dmg).stem}_direction.shp')
+        create_shpfile(json_file, prob_by_path, outfile)
 
     # create shp file for node failure
     outfile = cfg.output_path.joinpath(f'{Path(file_model).stem}_{Path(file_dmg).stem}_nodes.shp')
@@ -506,7 +670,7 @@ def inference(file_model: str, file_dmg: str) -> None:
 
 
 @app.command()
-def reliability(file_model: str, file_dmg: str) -> None:
+def run_reliability(file_model: str, file_dmg: str) -> None:
     """
     compute the likelihood of routes being available
     file_model:

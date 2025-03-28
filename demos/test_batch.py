@@ -9,12 +9,11 @@ from demos.road import batch as road
 from demos.SF import batch as sf
 
 
-@pytest.mark.skip('get_composite_variable')
 def test_batch():
 
-    rbd.main()
+    #rbd.main()
     pf_map.debug()
-    routine.main()
-    road.main()
-    sf.main(max_sf=10)
+    #routine.main()
+    #road.main()
+    #sf.main(max_sf=10)
     #power_house.batch()

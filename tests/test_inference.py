@@ -583,7 +583,6 @@ def test_variable_elim(setup_bridge):
     np.testing.assert_array_almost_equal(result.p, np.array([[0.009, 0.048, 0.942]]).T, decimal=3)
 
 
-@pytest.mark.skip('get_composite_state')
 def test_prod_cpm_sys_and_comps():
 
     cfg = config.Config(HOME.joinpath('../demos/routine/config.json'))
