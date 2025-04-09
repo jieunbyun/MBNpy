@@ -406,7 +406,7 @@ def init_branch(probs: dict, rules: dict) -> list:
     return [branch.Branch(down, up, down_state, up_state, 1.0)]
 
 
-def decomp_depth_first(rules, probs, max_nb, brs = []):
+def decomp_depth_first(rules, probs, max_nb=np.inf, brs = []):
     """
     depth-first decomposition of event space using given rules
     """
