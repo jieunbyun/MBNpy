@@ -34,56 +34,56 @@
         }
     },
     "sysout_setup": {
-        "Wooroloo-Merredin": {
+        "Wooroloo_Merredin": {
             "origin": "Wooroloo",
             "destination": "Merredin",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "Northam-York": {
+        "Northam_York": {
             "origin": "Northam",
             "destination": "York",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "Northam-Meckering": {
+        "Northam_Meckering": {
             "origin": "Northam",
             "destination": "Meckering",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "Meckering-Cunderdin": {
+        "Meckering_Cunderdin": {
             "origin": "Meckering",
             "destination": "Cunderdin",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "Cunderdin-Kellerberrin": {
+        "Cunderdin_Kellerberrin": {
             "origin": "Cunderdin",
             "destination": "Kellerberrin",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "Kellerberrin-Merredin": {
+        "Kellerberrin_Merredin": {
             "origin": "Kellerberrin",
             "destination": "Merredin",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "York-Cunderdin": {
+        "York_Cunderdin": {
             "origin": "York",
             "destination": "Cunderdin",
             "output_node_capacity": null,
             "capacity_fraction": null,
             "priorty": null
         },
-        "York-Merredin": {
+        "York_Merredin": {
             "origin": "York",
             "destination": "Merredin",
             "output_node_capacity": null,
@@ -95,829 +95,835 @@
         "1": {
             "origin": "0638",
             "destination": "4815",
-            "link_capacity": null,
+            "link_capacity": 75,
             "weight": 469
         },
         "2": {
             "origin": "0638",
             "destination": "0277",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 438
         },
         "3": {
             "origin": "0597",
             "destination": "Kellerberrin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1627
         },
         "4": {
             "origin": "0286",
             "destination": "4166A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 127
         },
         "5": {
             "origin": "4166A",
             "destination": "York",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 494
         },
         "6": {
             "origin": "0752",
             "destination": "Northam",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 133
         },
         "7": {
             "origin": "Northam",
             "destination": "4815",
-            "link_capacity": null,
+            "link_capacity": 75,
             "weight": 540
         },
         "8": {
             "origin": "4815",
             "destination": "4154",
-            "link_capacity": null,
+            "link_capacity": 75,
             "weight": 323
         },
         "9": {
             "origin": "4154",
             "destination": "4156",
-            "link_capacity": null,
+            "link_capacity": 75,
             "weight": 373
         },
         "10": {
             "origin": "4156",
             "destination": "0283",
-            "link_capacity": null,
+            "link_capacity": 75,
             "weight": 53
         },
         "11": {
             "origin": "0639",
             "destination": "Meckering",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 2688
         },
         "1100": {
             "origin": "0284",
             "destination": "Meckering",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1440
         },
         "12": {
             "origin": "Meckering",
             "destination": "Cunderdin",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 1086
         },
         "13": {
             "origin": "Cunderdin",
             "destination": "1065",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 239
         },
         "14": {
             "origin": "1065",
             "destination": "0714",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1780
         },
         "15": {
             "origin": "0714",
             "destination": "0715",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 10
         },
         "16": {
             "origin": "0715",
             "destination": "0717",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 449
         },
         "17": {
             "origin": "0717",
             "destination": "5093",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 2884
         },
         "18": {
             "origin": "0612",
             "destination": "0613",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 208
         },
         "19": {
             "origin": "0576",
             "destination": "0290",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 475
         },
         "20": {
             "origin": "0290",
             "destination": "0291",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 59
         },
         "21": {
             "origin": "0638",
             "destination": "0612",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 112
         },
         "22": {
             "origin": "0613",
             "destination": "0277",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 268
         },
         "23": {
             "origin": "1047",
             "destination": "0612",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 563
         },
         "24": {
             "origin": "0612",
             "destination": "0277",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 322
         },
         "25": {
             "origin": "Cunderdin",
             "destination": "Kellerberrin",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 1785
         },
         "26": {
             "origin": "Kellerberrin",
             "destination": "1006",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 1269
         },
         "27": {
             "origin": "1006",
             "destination": "1007",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 7
         },
         "28": {
             "origin": "1007",
             "destination": "1050",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 282
         },
         "29": {
             "origin": "1050",
             "destination": "0627",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 337
         },
         "30": {
             "origin": "0627",
             "destination": "Merredin",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 261
         },
         "31": {
             "origin": "Northam",
             "destination": "0613",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 275
         },
         "32": {
             "origin": "0613",
             "destination": "1149",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 257
         },
         "33": {
             "origin": "0305",
             "destination": "0729",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 505
         },
         "34": {
             "origin": "0729",
             "destination": "0730",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 464
         },
         "35": {
             "origin": "0730",
             "destination": "0714",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1793
         },
         "36": {
             "origin": "0717",
             "destination": "0596",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 805
         },
         "37": {
             "origin": "0596",
             "destination": "Kellerberrin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1938
         },
         "38": {
             "origin": "Kellerberrin",
             "destination": "0641",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 283
         },
         "39": {
             "origin": "0641",
             "destination": "Merredin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 2449
         },
         "40": {
             "origin": "York",
             "destination": "0291",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 326
         },
         "41": {
             "origin": "York",
             "destination": "4184",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 333
         },
         "410": {
             "origin": "York",
             "destination": "4156",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 333
         },
         "42": {
             "origin": "4184",
             "destination": "0289",
-            "link_capacity": null,
+            "link_capacity": 75,
             "weight": 250
         },
         "43": {
             "origin": "0287",
             "destination": "4556A",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 27
         },
         "44": {
             "origin": "4556A",
             "destination": "4151",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1011
         },
         "45": {
             "origin": "4151",
             "destination": "Kellerberrin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 2760
         },
         "46": {
             "origin": "0288",
             "destination": "4556A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 32
         },
         "47": {
             "origin": "0361",
             "destination": "0612",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 589
         },
         "48": {
             "origin": "0612",
             "destination": "0752",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 55
         },
         "49": {
             "origin": "0752",
             "destination": "0753",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 250
         },
         "50": {
             "origin": "0753",
             "destination": "0754",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 8
         },
         "51": {
             "origin": "0754",
             "destination": "0761",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 540
         },
         "52": {
             "origin": "0761",
             "destination": "0762",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 124
         },
         "53": {
             "origin": "0762",
             "destination": "0763A",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 158
         },
         "54": {
             "origin": "0763A",
             "destination": "0765",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 636
         },
         "55": {
             "origin": "0290",
             "destination": "0289",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 241
         },
         "56": {
             "origin": "0289",
             "destination": "0288",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 28
         },
         "57": {
             "origin": "0288",
             "destination": "0287",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 27
         },
         "58": {
             "origin": "0287",
             "destination": "0286",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 116
         },
         "59": {
             "origin": "0286",
             "destination": "0285",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 20
         },
         "60": {
             "origin": "0285",
             "destination": "0284",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 73
         },
         "61": {
             "origin": "0284",
             "destination": "0283",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 21
         },
         "62": {
             "origin": "0283",
             "destination": "0282",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 94
         },
         "63": {
             "origin": "0282",
             "destination": "0281",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 63
         },
         "64": {
             "origin": "0281",
             "destination": "0280",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 132
         },
         "65": {
             "origin": "0280",
             "destination": "0279",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 54
         },
         "66": {
             "origin": "0279",
             "destination": "0278",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 78
         },
         "67": {
             "origin": "0278",
             "destination": "0277",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 159
         },
         "68": {
             "origin": "0277",
             "destination": "0752",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 324
         },
         "69": {
             "origin": "0694",
             "destination": "0361",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 477
         },
         "70": {
             "origin": "0361",
             "destination": "0638",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 558
         },
         "71": {
             "origin": "0638",
             "destination": "Northam",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 150
         },
         "72": {
             "origin": "Northam",
             "destination": "0277",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 388
         },
         "73": {
             "origin": "0576",
             "destination": "0291",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 482
         },
         "74": {
             "origin": "0291",
             "destination": "0299",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 338
         },
         "75": {
             "origin": "0299",
             "destination": "0300",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 70
         },
         "76": {
             "origin": "0300",
             "destination": "0301",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 152
         },
         "77": {
             "origin": "0301",
             "destination": "0302",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 102
         },
         "78": {
             "origin": "0302",
             "destination": "0303",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 68
         },
         "79": {
             "origin": "0303",
             "destination": "0304",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 6
         },
         "80": {
             "origin": "0304",
             "destination": "0305",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 110
         },
         "81": {
             "origin": "0305",
             "destination": "5093",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 6126
         },
         "82": {
             "origin": "5093",
             "destination": "5281",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 268
         },
         "83": {
             "origin": "5281",
             "destination": "5099A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 169
         },
         "84": {
             "origin": "5099A",
             "destination": "6223A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 340
         },
         "85": {
             "origin": "6223A",
             "destination": "5100A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 3
         },
         "86": {
             "origin": "5100A",
             "destination": "Merredin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 2420
         },
         "87": {
             "origin": "Northam",
             "destination": "0612",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 135
         },
         "88": {
             "origin": "0612",
             "destination": "9186",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 305
         },
         "89": {
             "origin": "Wooroloo",
             "destination": "4527",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 197
         },
         "90": {
             "origin": "4527",
             "destination": "0369",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 1053
         },
         "91": {
             "origin": "0369",
             "destination": "0692",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 303
         },
         "92": {
             "origin": "0692",
             "destination": "0693",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 77
         },
         "93": {
             "origin": "0693",
             "destination": "0694",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 11
         },
         "94": {
             "origin": "0694",
             "destination": "0631A",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 169
         },
         "95": {
             "origin": "0631A",
             "destination": "0632A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 77
         },
         "96": {
             "origin": "0632A",
             "destination": "0633A",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 112
         },
         "97": {
             "origin": "0633A",
             "destination": "0634",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 482
         },
         "98": {
             "origin": "0634",
             "destination": "0637",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 762
         },
         "99": {
             "origin": "0637",
             "destination": "0765",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 433
         },
         "100": {
             "origin": "0765",
             "destination": "0639",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 863
         },
         "101": {
             "origin": "0639",
             "destination": "Merredin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 5816
         },
         "102": {
             "origin": "Wooroloo",
             "destination": "0574",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 1160
         },
         "103": {
             "origin": "0574",
             "destination": "0576",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 621
         },
         "104": {
             "origin": "0576",
             "destination": "York",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 623
         },
         "105": {
             "origin": "York",
             "destination": "0290",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 319
         },
         "106": {
             "origin": "0290",
             "destination": "0579",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 88
         },
         "107": {
             "origin": "0579",
             "destination": "0580",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 50
         },
         "108": {
             "origin": "0580",
             "destination": "0897",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 586
         },
         "109": {
             "origin": "0897",
             "destination": "0898",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 115
         },
         "110": {
             "origin": "0898",
             "destination": "0589",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 203
         },
         "111": {
             "origin": "0589",
             "destination": "0592",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 297
         },
         "112": {
             "origin": "0592",
             "destination": "0596",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1596
         },
         "113": {
             "origin": "0596",
             "destination": "0597",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 369
         },
         "114": {
             "origin": "0597",
             "destination": "0598",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 46
         },
         "115": {
             "origin": "0598",
             "destination": "0602",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 1063
         },
         "116": {
             "origin": "0602",
             "destination": "Merredin",
-            "link_capacity": null,
+            "link_capacity": 50,
             "weight": 2872
         },
         "117": {
             "origin": "Wooroloo",
             "destination": "0606",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 531
         },
+        "1170": {
+            "origin": "Wooroloo",
+            "destination": "9306",
+            "link_capacity": 100,
+            "weight": 1090
+        }, 
         "118": {
             "origin": "0606",
             "destination": "9306",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 547
         },
         "119": {
             "origin": "9306",
             "destination": "1046",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 20
         },
         "120": {
             "origin": "1046",
             "destination": "1047",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 192
         },
         "121": {
             "origin": "1047",
             "destination": "9186",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 294
         },
         "122": {
             "origin": "9186",
             "destination": "1469",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 46
         },
         "123": {
             "origin": "1469",
             "destination": "1468",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 23
         },
         "124": {
             "origin": "1468",
             "destination": "1504",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 9
         },
         "125": {
             "origin": "1504",
             "destination": "1467",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 5
         },
         "126": {
             "origin": "1467",
             "destination": "1466",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 59
         },
         "127": {
             "origin": "1466",
             "destination": "1465",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 78
         },
         "128": {
             "origin": "1465",
             "destination": "1464",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 5
         },
         "129": {
             "origin": "1464",
             "destination": "1463",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 18
         },
         "130": {
             "origin": "1463",
             "destination": "9187",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 49
         },
         "131": {
             "origin": "9187",
             "destination": "1149",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 223
         },
         "132": {
             "origin": "1149",
             "destination": "1150",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 131
         },
         "133": {
             "origin": "1150",
             "destination": "1153",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 78
         },
         "134": {
             "origin": "1153",
             "destination": "1154",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 174
         },
         "135": {
             "origin": "1154",
             "destination": "0617",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 439
         },
         "136": {
             "origin": "0617",
             "destination": "Meckering",
-            "link_capacity": null,
+            "link_capacity": 100,
             "weight": 238
         }
     },

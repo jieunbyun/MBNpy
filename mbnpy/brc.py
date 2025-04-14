@@ -542,8 +542,8 @@ def run_MCS_indep_comps(probs, sys_fun, cov_t = 0.01):
 
     return pf, cov, nsamp
 
-def eval_rules_prob( rules_list, s_or_f, probs ):
-    
+def eval_rules_prob(rules_list, s_or_f, probs):
+
     probs_list = []
 
     if s_or_f == 'f': # rules_list contain failure rules
@@ -565,5 +565,5 @@ def eval_rules_prob( rules_list, s_or_f, probs ):
             probs_list.append(p)
     else:
         raise ValueError('s_or_f input variable must be a string either "s" or "f".')
-    
+
     return probs_list

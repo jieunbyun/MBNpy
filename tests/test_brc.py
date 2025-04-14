@@ -492,7 +492,7 @@ def test_inference2(setup_inference):
 
     # case 2: observation
     cpms, varis, var_elim_order, arcs = setup_inference
-
+    pdb.set_trace()
     cnd_vars = [f'o{i}' for i in range(1, len(arcs) + 1)]
     cnd_states = [1, 1, 0, 1, 0, 1]  # observing e3, e5 failure
 
@@ -500,10 +500,10 @@ def test_inference2(setup_inference):
     # P(sys, obs)
     Msys_obs = inference.variable_elim(Mobs, var_elim_order)
 
-    np.testing.assert_array_almost_equal(Msys_obs.C, np.array([[0, 1]]).T)
-    np.testing.assert_array_almost_equal(Msys_obs.p, np.array([[2.765e-5, 5.515e-5]]).T)
+    np.testing.assert_array_almost_equal(Msys_obs.p[Msys_obs.C==1], np.array([5.515e-5]))
+    np.testing.assert_array_almost_equal(Msys_obs.p[Msys_obs.C==0], np.array([2.765e-5]))
     # P(sys=0|obs) = P(sys=0,obs) / P(obs) 
-    pf_sys = Msys_obs.p[0] / np.sum(Msys_obs.p)
+    pf_sys = Msys_obs.p[Msys_obs.C==0] / np.sum(Msys_obs.p)
     assert pf_sys == pytest.approx(0.334, rel=1.0e-3)
 
 
@@ -880,38 +880,6 @@ def test_get_csys3(main_sys):
     Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
     np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
     np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
-
-
-def test_inference1(setup_inference):
-
-    # case 1: no observatio
-    cpms, varis, var_elim_order, arcs = setup_inference
-
-    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
-    np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
-    np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
-
-    pf_sys = Msys.p[0]
-    assert pf_sys == pytest.approx(0.1018, rel=1.0e-3)
-
-
-def test_inference2(setup_inference):
-
-    # case 2: observation
-    cpms, varis, var_elim_order, arcs = setup_inference
-
-    cnd_vars = [f'o{i}' for i in range(1, len(arcs) + 1)]
-    cnd_states = [1, 1, 0, 1, 0, 1]  # observing e3, e5 failure
-
-    Mobs = inference.condition([cpms[v] for v in varis.keys()], cnd_vars, cnd_states)
-    # P(sys, obs)
-    Msys_obs = inference.variable_elim(Mobs, var_elim_order)
-
-    np.testing.assert_array_almost_equal(Msys_obs.C, np.array([[0, 1]]).T)
-    np.testing.assert_array_almost_equal(Msys_obs.p, np.array([[2.765e-5, 5.515e-5]]).T)
-    # P(sys=0|obs) = P(sys=0,obs) / P(obs) 
-    pf_sys = Msys_obs.p[0] / np.sum(Msys_obs.p)
-    assert pf_sys == pytest.approx(0.334, rel=1.0e-3)
 
 
 def test_get_connectivity_given_comps4():
