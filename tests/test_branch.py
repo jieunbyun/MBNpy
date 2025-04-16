@@ -704,7 +704,7 @@ def test_get_compat_rules():
     assert result['s'] == [{'e2': 1}, {'e2': 2}]
     assert result['f'] == []
 
-@pytest.mark.skip('get_composite_state')
+
 def test_get_c_from_br(main_sys):
 
     G, _, _, d_varis, _ = main_sys

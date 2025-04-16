@@ -1356,7 +1356,6 @@ def test_condition(setup_mcs_product):
     assert M.sample_idx.any() == False
 
 
-@pytest.mark.skip('get_composite_state')
 def test_get_prob(setup_inference):
 
     d_cpms, d_varis, var_elim_order, arcs = setup_inference
@@ -1392,7 +1391,7 @@ def test_get_prob_bnd1(setup_hybrid_no_samp):
 
     assert prob_bnd_s0 == pytest.approx([0.045, 0.415], rel=1.0e-3)
 
-@pytest.mark.skip('Cs_prod_Cs')
+#@pytest.mark.skip('Cs_prod_Cs')
 def test_get_prob_and_cov1(setup_hybrid):
 
     varis, cpms = setup_hybrid

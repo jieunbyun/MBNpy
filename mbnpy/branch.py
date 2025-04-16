@@ -242,8 +242,8 @@ class Branch(object):
             up = self.up[x]
 
             if up > down:
-                states = list(range(down, up + 1))
-                varis[x], st = variable.get_composite_state(varis[x], states)
+                states = set(range(down, up + 1))
+                st = varis[x].get_state(states)
             else:
                 st = up
 
