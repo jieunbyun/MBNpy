@@ -331,37 +331,56 @@ def get_vari_cpm_given_path(route, edge_names, weight):
     return vari, cpm
 
 
-def sys_fun(comps_st, G, threshold, od_pair, d_time_itc):
+def sys_fun(comps_st, G, threshold, od, d_time_itc):
+    """
 
+
+
+    """
     G_tmp = G.copy()
-
+    """
+    # remove edges capacity lower than min_capacity
+    if min_capacity:
+        edges_to_remove = [(u, v) for u, v, data in G.edges(data=True) if data.get('capacity', np.inf) < min_edge_capa]
+        G_tmp.remove_edges_from(edges_to_remove)
+    """
     for br, st in comps_st.items():
         if st == 0:
             for neigh in G.neighbors(br):
                 G_tmp[br][neigh]['weight'] = float('inf')
 
-    d_time = nx.shortest_path_length(G_tmp, source=od_pair[0], target=od_pair[1], weight='weight')
+    d_time = nx.shortest_path_length(G_tmp, source=od['origin'], target=od['destination'], weight='weight')
 
-    if d_time > threshold*d_time_itc:
+    if d_time > threshold + d_time_itc:
         sys_st = 'f'
         min_comps_st = None
     else:
         sys_st = 's'
 
-        path = nx.shortest_path(G_tmp, source=od_pair[0], target=od_pair[1], weight='weight')
+        path = nx.shortest_path(G_tmp, source=od['origin'], target=od['destination'], weight='weight')
         min_comps_st = {node: 1 for node in path if node in comps_st.keys()}
 
     return d_time, sys_st, min_comps_st
 
 
 @app.command()
-def run_brc(file_dmg: str, key: str='Wooroloo-Merredin') -> None:
+def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
 
 
     cfg = config.Config(HOME.joinpath('./config.json'))
 
-    od_pair = cfg.infra['ODs'][key]
-    od_name = '_'.join(od_pair)
+    od = cfg.infra['ODs'][od_name]
+
+    # apply capacity threshold if exists
+    G = cfg.infra['G']
+
+    if od['capacity_fraction']:
+        edges_to_remove = [(u, v) for u, v, data in G.edges(data=True) if data.get('capacity', np.inf) < od['capacity_fraction']]
+        G.remove_edges_from(edges_to_remove)
+
+    d_time_itc = nx.shortest_path_length(G, source=od['origin'], target=od['destination'], weight='weight')
+
+    sf_brc = lambda comps_st: sys_fun(comps_st, G, cfg.data['THRESHOLD'], od, d_time_itc)
 
     probs = read_file_dmg(file_dmg)
 
@@ -377,28 +396,23 @@ def run_brc(file_dmg: str, key: str='Wooroloo-Merredin') -> None:
         finally:
             cpms[k] = cpm.Cpm(variables=[varis[k]], no_child=1, C=np.array([[0], [1]]), p=[pf, 1-pf])
 
-    G = cfg.infra['G']
-    d_time_itc = nx.shortest_path_length(G, source=od_pair[0], target=od_pair[1], weight='weight')
-
-    sf_brc = lambda comps_st: sys_fun(comps_st, cfg.infra['G'], cfg.data['THRESHOLD'], od_pair, d_time_itc)
-
     probs_brc = {k: {0: cpms[k].p[0, 0], 1: cpms[k].p[1, 0]} for k in cfg.infra['nodes'].keys()}
 
     fpath_br = HOME.joinpath(f"./brs_{od_name}.parquet")
     fpath_rule = HOME.joinpath(f"./rules_{od_name}.json")
 
-    if Path(fpath_br).exists():
+    #if Path(fpath_br).exists():
         # load saved results: brs, rules
-        brs = branch.load_brs_from_parquet(fpath_br)
-        with open(fpath_rule, 'r') as f:
-            rules = json.load(f)
+    #    brs = branch.load_brs_from_parquet(fpath_br)
+    #    with open(fpath_rule, 'r') as f:
+    #        rules = json.load(f)
 
-    else:
-        # run
-        brs, rules, sys_res, monitor = brc.run(probs_brc, sf_brc,
-            pf_bnd_wr=0.05, max_rules=20, surv_first=True,
-            active_decomp=10, display_freq=5)
-
+    #else:
+    # run
+    brs, rules, sys_res, monitor = brc.run(probs_brc, sf_brc,
+        pf_bnd_wr=0.01, max_rules=50, surv_first=True,
+        active_decomp=10, display_freq=10)
+    """
         # save rules, brs, sys_res, monitor
         branch.save_brs_to_parquet(brs, fpath_br)
 
@@ -411,7 +425,7 @@ def run_brc(file_dmg: str, key: str='Wooroloo-Merredin') -> None:
 
         fpath_res = HOME.joinpath(f"./sys_res_{od_name}.json")
         sys_res.to_json(fpath_res, orient='records', lines=True )
-
+    """
     # System's CPM 
     varis['sys'] = variable.Variable(name='sys', values=['f', 's', 'u'])
     comp_names = list(cfg.infra['nodes'].keys())
@@ -431,134 +445,154 @@ def run_brc(file_dmg: str, key: str='Wooroloo-Merredin') -> None:
             for i in rule_s_sort_idx:
                 f.write(f"{rule_s_probs[i]:.3e}, {rules['s'][i]}\n")
 
+
+    # Path times
+    rules_time = []
+    for r in rules['s']:
+        path_time = sys_res[sys_res['comp_st_min']==r]['sys_val'].values
+        rules_time.append(float(path_time))
+
+    print(rules_time)
+
+    sort_idx = sorted(range(len(rules_time)), key=lambda i:rules_time[i], reverse=False)
+    rules_s_sorted = [rules['s'][i] for i in sort_idx]
+    print(rules_s_sorted)
+
+    rules_time_sorted = [rules_time[i] for i in sort_idx]
+    print(rules_time_sorted)
+
+    rules_prob = []
+    for r in rules_s_sorted:
+        p_r = 1.0
+        for k in r:
+            p_r *= cpms[k].p[1]
+        rules_prob.append(float(p_r))
+    print(rules_prob)
+
     # system survival probability
     start = time.time()
     Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms[x] for x in comp_names])
-    print(f"Elapsed time for system probability calculation: {time.time()-start:.3f} s")
+    Msys = Msys.sum([varis[k] for k in G.nodes])
+    P_S0_low = Msys.get_prob([varis['sys']], [0])
+    P_S0_up = 1.0 - Msys.get_prob([varis['sys']], [1])
+    print(f"P(S=0) in ({P_S0_low}, {P_S0_up})")
 
-    pf_sys = sum(p for i, p in enumerate(Msys.p) if Msys.C[i,0]==0)
-    if isinstance(pf_sys, int):
-        pf_sys = 0.0
-    else:
-        pf_sys = pf_sys[0]
+    #figure
+    fsz = 12
+    colors = ['C0'] * len(rules_prob) + ['red', 'red']
 
-    ps_sys = sum(p for i, p in enumerate(Msys.p) if Msys.C[i,0]==1)
-    if isinstance(ps_sys, int):
-        ps_sys = 0.0
-    else:
-        ps_sys = ps_sys[0]
-
-    print(f"System failure probability bounds: {pf_sys:.3e}, {1.0-ps_sys:.3e}")
+    plt.figure(figsize=(8, 6))
+    plt.bar(
+        range(len(rules_prob) + 2),
+        rules_prob + [P_S0_low, P_S0_up],
+        tick_label=rules_time_sorted + ['Disconn_low_bound', 'Disconn_up_bound'],
+        color=colors
+    )
+    plt.xlabel("Travel Time (seconds)", fontsize=fsz)
+    plt.ylabel("Rules Probability", fontsize=fsz)
+    plt.xticks(fontsize=fsz, rotation=45)
+    plt.yticks(fontsize=fsz)
+    fname = HOME.joinpath('./rules_prob.png')
+    plt.savefig(fname)
+    plt.close()
 
     # Bounds are obtained for incomplete BnB
-    BMs, CIs = {}, {}
-    for idx, comp in enumerate(comp_names):
+    P_Xn0_S0 = {}
+    for k in G.nodes:
+        Msys_k = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms[k2] for k2 in G.nodes if k2!=k]) # this is faster than var_elim (given that there are only a system event and component events to compute)
+        Msys_k = Msys_k.sum([varis['sys']], False)
+        Msys_k = Msys_k.product(cpms[k])
+        p_num_low = Msys_k.get_prob([varis['sys'], varis[k]], [0, 0])
+        p_num_up = 1.0 - Msys_k.get_prob([varis['sys'], varis[k]], [0, 1]) - Msys_k.get_prob([varis['sys'], varis[k]], [1, 0]) - Msys_k.get_prob([varis['sys'], varis[k]], [1, 1])
 
-        P_x0 = cpms[comp].p[0]
-        P_x1 = cpms[comp].p[1]
+        p_int = (p_num_low / P_S0_up, p_num_up / P_S0_low)
+        P_Xn0_S0[k] = p_int
 
-        P_s1_x1 = sum(p for i, p in enumerate(Msys.p) if Msys.C[i,0]==1 and Msys.C[i,idx+1]==1)
-        P_s0_x1 = sum(p for i, p in enumerate(Msys.p) if Msys.C[i,0]==1 and Msys.C[i,idx+1]==0)
-        P_s1_x0 = sum(p for i, p in enumerate(Msys.p) if Msys.C[i,0]==0 and Msys.C[i,idx+1]==1)
-        P_s0_x0 = sum(p for i, p in enumerate(Msys.p) if Msys.C[i,0]==0 and Msys.C[i,idx+1]==0)
 
-        # BM
-        P_s1_cond_x1_bnd = (P_s1_x1/P_x1, (1.0-P_s0_x1-P_s1_x0-P_s0_x0)/P_x1)
-        P_s1_cond_x0_bnd = (P_s1_x0/P_x0, (1.0-P_s0_x1-P_s1_x0-P_s0_x0)/P_x0)
+    P_Xn0_S0_sorted = dict(sorted(P_Xn0_S0.items(), key=lambda item: item[1][0], reverse=True))
 
-        BM_bounds = (P_s1_cond_x1_bnd[0]-P_s1_cond_x0_bnd[1], P_s1_cond_x1_bnd[1]-P_s1_cond_x0_bnd[0])
-        BMs[comp] = (BM_bounds[0][0], BM_bounds[1][0])
+    # visualisation
+    P_Xn0_S0_to_draw = list(P_Xn0_S0_sorted.items())[:20]
 
-        # CI
-        CI_bounds = (BM_bounds[0]*P_x0, BM_bounds[1]*P_x0)
-        if not np.isnan(CI_bounds).all():
-            CIs[comp] = (CI_bounds[0][0], CI_bounds[1][0])
+    # Extract labels, midpoints, and bounds
+    labels = [k for k, _ in P_Xn0_S0_to_draw]
+    low = [v[0] for _, v in P_Xn0_S0_to_draw]
+    high = [v[1] for _, v in P_Xn0_S0_to_draw]
+    mid = [(l + h) / 2 for l, h in zip(low, high)]
+    error = [(m - l, h - m) for m, l, h in zip(mid, low, high)]
+    lower_err, upper_err = zip(*error)
 
-    sorted_CIs_keys = sorted(CIs.keys(), key=lambda x: CIs[x][0], reverse=True)
-    sorted_CIs_keys = sorted_CIs_keys[:10]
-
-    BMs_upper = [BMs[x][1] for x in sorted_CIs_keys]
-    CIs_upper = [CIs[x][1] for x in sorted_CIs_keys]
-
-    BMs_lower= [BMs[x][0] for x in sorted_CIs_keys]
-    CIs_lower = [CIs[x][0] for x in sorted_CIs_keys]
-
-    BMs_error = np.array([
-        [BMs_upper[i] - BMs_lower[i] for i in range(len(BMs_upper))],  # Lower errors
-        [0 for _ in range(len(BMs_upper))]  # Upper errors (0 because the bar already reaches BMs_upper)
-    ])
-
-    CIs_error = np.array([
-        [CIs_upper[i] - CIs_lower[i] for i in range(len(CIs_upper))],  # Lower errors
-        [0 for _ in range(len(CIs_upper))]  # Upper errors
-    ])
-
-    x = np.arange(len(sorted_CIs_keys))
-    width = 0.2
-
-    fig, ax1 = plt.subplots(figsize=(12, 6))
-    ax2 = ax1.twinx()
-
-    bars1 = ax1.bar(x - width/2, CIs_error[0], width, bottom=CIs_lower, yerr=CIs_error, capsize=5, color='tomato', alpha=0.7, label="CI")
-    bars2 = ax2.bar(x + width/2, BMs_error[0], width, bottom=BMs_lower, yerr=BMs_error, capsize=5, color='royalblue', alpha=0.7, label="BM")
+    # Plot as vertical error bars
+    plt.figure(figsize=(10, 6))
+    plt.errorbar(x=range(len(labels)), y=mid,
+                 yerr=[lower_err, upper_err],
+                 fmt='o', capsize=10)
 
     # Formatting
-    ax1.set_xlabel("Keys")
-    ax1.set_ylabel("CI", color='tomato')
-    ax1.tick_params(axis='y', labelcolor='tomato')
-
-    ax2.set_ylabel("BM", color='royalblue')
-    ax2.tick_params(axis='y', labelcolor='royalblue')
-
-    ax1.set_xticks(x)
-    ax1.set_xticklabels(sorted_CIs_keys, rotation=45)
-    plt.title("Keys sorted by lower bound of CI")
-
-    ax1.grid(axis='y', linestyle='--', alpha=0.6)
-
+    plt.xticks(ticks=range(len(labels)), labels=labels, rotation=45, fontsize=fsz)
+    plt.ylabel("P(Xn=fail | S = fail)", fontsize=fsz)
+    plt.xlabel("Bridge ID", fontsize=fsz)
+    plt.yticks(fontsize=fsz)
+    plt.grid(True)
     fn = HOME.joinpath('./CI_bounds.png')
-    fig.savefig(fn)
-    plt.close(fig)
+    plt.savefig(fn)
+    plt.close()
 
 
-def get_selected_paths(cfg, od_pair, route_file):
+def get_selected_paths(cfg, od, route_file):
+    """
+    cfg: instance of config.Config
+    od: dictionary of od pair
+    route_file: route_file
+    """
 
     G = cfg.infra['G']
 
-    d_time_itc = nx.shortest_path_length(G, source=od_pair[0], target=od_pair[1], weight='weight')
+    # apply capacity threshold if exists
+    if od['capacity_fraction']:
+        edges_to_remove = [(u, v) for u, v, data in G.edges(data=True) if data.get('capacity', np.inf) < od['capacity_fraction']]
+        G.remove_edges_from(edges_to_remove)
+
+    d_time_itc = nx.shortest_path_length(G, source=od['origin'], target=od['destination'], weight='weight')
 
     if route_file:
         with open(route_file, 'r') as f:
             selected_paths = json.load(f)
 
-        selected_paths = [item for item in selected_paths.values()]
-
     else:
         try:
             no_paths = cfg.data['NO_PATHS']
         except KeyError:
-            selected_paths = nx.all_simple_paths(G, od_pair[0], od_pair[1])
+            selected_paths = nx.all_simple_paths(G, od['origin'], od['destination'])
         else:
-            selected_paths = k_shortest_paths(G, source=od_pair[0], target=od_pair[1], k=no_paths, weight='weight')
+            selected_paths = k_shortest_paths(G, source=od['origin'], target=od['destination'], k=no_paths, weight='weight')
 
-    valid_paths = []
-    for path in selected_paths:
+        selected_paths = {f"{od['origin']}_{od['destination']}_{i}": v for i, v in enumerate(selected_paths)}
+
+    paths = []
+    for path_id, path in selected_paths.items():
         # Calculate the total weight of the path
         path_edges = [(u, v) for u, v in zip(path[:-1], path[1:])]
-        path_weight = sum(G[u][v]['weight'] for u, v in path_edges)
+        try:
+            path_weight = sum(G[u][v]['weight'] for u, v in path_edges)
+        except KeyError as msg:
+            print(f'path not used due to missing {msg}')
+        else:
+        # if takes longer than thres + d_time_itc, we consider the od pair is disconnected; moved to config
+            if path_weight < cfg.data['THRESHOLD'] + d_time_itc:
 
-        # if takes longer than thres * d_time_itc, we consider the od pair is disconnected; moved to config
-        if path_weight < cfg.data['THRESHOLD'] * d_time_itc:
-
-            # Collect the edge names if they exist, otherwise just use the edge tuple
-            edge_names = [G[u][v].get('key', (u, v)) for u, v in path_edges]
-            valid_paths.append((path, edge_names, path_weight))
+                # Collect the edge names if they exist, otherwise just use the edge tuple
+                edge_names = [G[u][v].get('key', (u, v)) for u, v in path_edges]
+                paths.append((path_id, edge_names, path_weight))
 
     # Sort valid paths by weight
-    valid_paths = sorted(valid_paths, key=lambda x: x[2])
+    paths = sorted(paths, key=lambda x: x[2])
 
+    valid_paths = {}
     keys = ['path', 'edges', 'weight']
-    valid_paths = {'_'.join((*od_pair, str(i))): dict(zip(keys, item)) for i, item in enumerate(valid_paths)}
+    for path_id, edge_names, path_weight in paths:
+        valid_paths[path_id] = dict(zip(keys,
+                                  [selected_paths[path_id], edge_names, path_weight]))
 
     return valid_paths
 
@@ -572,10 +606,7 @@ def setup_model(file_dmg: str,
     route_file: a json file where each OD is defined with a list of nodes
     """
     cfg = config.Config(HOME.joinpath('./config.json'))
-
-    od_pair = cfg.infra['ODs'][od_name]
-
-    valid_paths = get_selected_paths(cfg, od_pair, route_file)
+    valid_paths = get_selected_paths(cfg, cfg.infra['ODs'][od_name], route_file)
     path_names = list(valid_paths.keys())
 
     update_nodes_given_dmg(cfg.infra['nodes'], file_dmg, valid_paths)
@@ -744,7 +775,6 @@ def run_survivability(file_model: str) -> None:
         paths_rel[path] = Mpath.p[Mpath.C==1][0]
 
     # FIXME: computing P(path=1|S)
-    pdb.set_trace()
     vars_inf = inference.get_inf_vars(cpms, od_name, VE_ord)
     Mobs = inference.condition([cpms[v] for v in vars_inf], [path_names[0]], [1])
     # P(sys, path)
