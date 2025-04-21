@@ -102,7 +102,7 @@ def read_model_from_json(file_input):
 
     ODs={}
     for k, v in model['sysout_setup'].items():
-        ODs[k] = (v['origin'], v['destination'])
+        ODs[k] = {k1:v1 for k1, v1 in v.items() if v1}
 
     # create a graph
     try:
@@ -121,7 +121,7 @@ def read_model_from_json(file_input):
             G = nx.MultiDiGraph()
 
     for k, v in edges.items():
-        G.add_edge(v['origin'], v['destination'], label=k, weight=v['weight'], key=k)
+        G.add_edge(v['origin'], v['destination'], label=k, weight=v['weight'], capacity=v['link_capacity'], key=k)
 
     for k, v in nodes.items():
         G.add_node(k, pos=(v['pos_x'], v['pos_y']), label=k, key=k)

@@ -38,7 +38,7 @@
             "origin": "Wooroloo",
             "destination": "Merredin",
             "output_node_capacity": null,
-            "capacity_fraction": null,
+            "capacity_fraction": 75,
             "priorty": null
         },
         "Northam_York": {
@@ -80,14 +80,14 @@
             "origin": "York",
             "destination": "Cunderdin",
             "output_node_capacity": null,
-            "capacity_fraction": null,
+            "capacity_fraction": 75,
             "priorty": null
         },
         "York_Merredin": {
             "origin": "York",
             "destination": "Merredin",
             "output_node_capacity": null,
-            "capacity_fraction": null,
+            "capacity_fraction": 75,
             "priorty": null
         }
     },
