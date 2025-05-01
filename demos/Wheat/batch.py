@@ -16,6 +16,9 @@ from scipy import stats
 from itertools import islice
 from typing_extensions import Annotated
 
+import plotly.express as px
+import plotly.graph_objects as go
+
 from mbnpy import model, config, trans, variable, brc, branch, cpm, inference
 
 app = typer.Typer()
@@ -164,6 +167,19 @@ def compute_pe_by_ds(ps, kshape, Kskew, k3d, sa10):
             for ds in DAMAGE_STATES})
 
 
+def get_pb_from_pe(pe):
+
+    _pe = [pe[k] for k in DAMAGE_STATES]
+    pb = -1.0*np.diff(_pe)
+    pb = np.append(pb, _pe[-1])
+
+    pb = {k: v for k, v in zip(DAMAGE_STATES, pb)}
+    if isinstance(pe, pd.Series):
+        pb = pd.Series(pb)
+
+    return pb
+
+
 @app.command()
 def dmg_bridge(file_bridge: str, file_gm: str):
 
@@ -191,18 +207,19 @@ def dmg_bridge(file_bridge: str, file_gm: str):
             df_pe = compute_pe_by_ds(
                 bridge_param.loc[row['HAZUS_CLASS']], row['Kshape'], row['Kskew'], row['K3d'], row['SA10'])
 
-            #df_pb = get_pb_from_pe(df_pe)
+            df_pb = get_pb_from_pe(df_pe)
             #df_pe['Kshape'] = row['Kshape']
             #df_pe['SA10'] = row['SA10']
 
-            dmg.append(df_pe)
+            dmg.append(df_pb)
 
         else:
             print('Something wrong {}:{}'.format(i, _df.loc[idx]))
 
     dmg = pd.DataFrame(dmg)
     dmg.index = df_bridge.index
-    #df_bridge = pd.concat([df_bridge, tmp], axis=1)
+
+    dmg = pd.concat([df_bridge, dmg], axis=1)
 
     # convert to edge prob
     #dmg = convert_dmg(tmp)
@@ -346,7 +363,7 @@ def sys_fun(comps_st, G, threshold, od, d_time_itc):
     """
     for br, st in comps_st.items():
         if st == 0:
-            for neigh in G.neighbors(br):
+           for neigh in G.neighbors(br):
                 G_tmp[br][neigh]['weight'] = float('inf')
 
     d_time = nx.shortest_path_length(G_tmp, source=od['origin'], target=od['destination'], weight='weight')
@@ -364,8 +381,13 @@ def sys_fun(comps_st, G, threshold, od, d_time_itc):
 
 
 @app.command()
-def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
-
+def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin', flag: bool=False) -> None:
+    """
+    file_dmg: csv (consisting of prob of Slight,Moderate,Extensive,Complete) or
+or shakecast json file
+    od_name: {origin}_{destination}
+    flag: True for saving results (False)
+    """
 
     cfg = config.Config(HOME.joinpath('./config.json'))
 
@@ -374,7 +396,11 @@ def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
     # apply capacity threshold if exists
     G = cfg.infra['G']
 
-    if od['capacity_fraction']:
+    try:
+        od['capacity_fraction']
+    except KeyError:
+        pass
+    else:
         edges_to_remove = [(u, v) for u, v, data in G.edges(data=True) if data.get('capacity', np.inf) < od['capacity_fraction']]
         G.remove_edges_from(edges_to_remove)
 
@@ -385,7 +411,7 @@ def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
     probs = read_file_dmg(file_dmg)
 
     # variables
-    cpms, varis = {}, {}
+    cpms, varis, probs_brc = {}, {}, {}
     for k in cfg.infra['nodes'].keys():
 
         varis[k] = variable.Variable(name=k, values = ['f', 's'])
@@ -394,38 +420,38 @@ def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
         except KeyError:
             pf = 0.0
         finally:
-            cpms[k] = cpm.Cpm(variables=[varis[k]], no_child=1, C=np.array([[0], [1]]), p=[pf, 1-pf])
+            cpms[k] = cpm.Cpm(variables=[varis[k]], no_child=1, C=np.array([[0], [1]]), p=[pf, 1 - pf])
+            probs_brc[k] = {0: cpms[k].p[0, 0], 1: cpms[k].p[1, 0]}
 
-    probs_brc = {k: {0: cpms[k].p[0, 0], 1: cpms[k].p[1, 0]} for k in cfg.infra['nodes'].keys()}
+    fpath_br = HOME.joinpath(f"brs_{od_name}.parquet")
+    fpath_rule = HOME.joinpath(f"rules_{od_name}.json")
+    fpath_res = HOME.joinpath(f"sys_res_{od_name}.json")
 
-    fpath_br = HOME.joinpath(f"./brs_{od_name}.parquet")
-    fpath_rule = HOME.joinpath(f"./rules_{od_name}.json")
-
-    #if Path(fpath_br).exists():
+    if Path(fpath_br).exists() and flag==False:
         # load saved results: brs, rules
-    #    brs = branch.load_brs_from_parquet(fpath_br)
-    #    with open(fpath_rule, 'r') as f:
-    #        rules = json.load(f)
+        brs = branch.load_brs_from_parquet(fpath_br)
+        with open(fpath_rule, 'r') as f:
+            rules = json.load(f)
+        sys_res = pd.read_json(fpath_res, orient='record', lines=True)
 
-    #else:
-    # run
-    brs, rules, sys_res, monitor = brc.run(probs_brc, sf_brc,
-        pf_bnd_wr=0.01, max_rules=50, surv_first=True,
-        active_decomp=10, display_freq=10)
-    """
-        # save rules, brs, sys_res, monitor
-        branch.save_brs_to_parquet(brs, fpath_br)
+    else:
+        brs, rules, sys_res, monitor = brc.run(probs_brc, sf_brc,
+            pf_bnd_wr=0.05, max_rules=20, surv_first=True,
+            active_decomp=10, display_freq=1)
 
-        with open(fpath_rule, "w") as f:
-            json.dump(rules, f, indent=4)
+        if flag:
+            # save rules, brs, sys_res, monitor
+            branch.save_brs_to_parquet(brs, fpath_br)
 
-        fpath_mon = HOME.joinpath(f"./monitor_{od_name}.json")
-        with open(fpath_mon, "w") as f:
-            json.dump(monitor, f, indent=4)
+            with open(fpath_rule, "w") as f:
+                json.dump(rules, f, indent=4)
 
-        fpath_res = HOME.joinpath(f"./sys_res_{od_name}.json")
-        sys_res.to_json(fpath_res, orient='records', lines=True )
-    """
+            fpath_mon = HOME.joinpath(f"monitor_{od_name}.json")
+            with open(fpath_mon, "w") as f:
+                json.dump(monitor, f, indent=4)
+
+            sys_res.to_json(fpath_res, orient='records', lines=True)
+
     # System's CPM 
     varis['sys'] = variable.Variable(name='sys', values=['f', 's', 'u'])
     comp_names = list(cfg.infra['nodes'].keys())
@@ -438,43 +464,39 @@ def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
     rule_s_probs = brc.eval_rules_prob(rules['s'], 's', probs_brc)
     rule_s_sort_idx = np.argsort(rule_s_probs)[::-1] # sort by descending order of probabilities
 
-    f_surv_rules = HOME.joinpath('./survival_rules_brc.txt')
+    f_surv_rules = HOME.joinpath(f'survival_rules_{od_name}.txt')
     if not f_surv_rules.exists():
         with open(f_surv_rules, 'w') as f:
             f.write("rules_prob, rules\n")
             for i in rule_s_sort_idx:
                 f.write(f"{rule_s_probs[i]:.3e}, {rules['s'][i]}\n")
 
-
     # Path times
     rules_time = []
     for r in rules['s']:
         path_time = sys_res[sys_res['comp_st_min']==r]['sys_val'].values
-        rules_time.append(float(path_time))
+        rules_time.append(path_time[0])
 
-    print(rules_time)
-
-    sort_idx = sorted(range(len(rules_time)), key=lambda i:rules_time[i], reverse=False)
+    #sort_idx = sorted(range(len(rules_time)), key=lambda i:rules_time[i], reverse=False)
+    sort_idx = np.argsort(rules_time)
     rules_s_sorted = [rules['s'][i] for i in sort_idx]
-    print(rules_s_sorted)
-
-    rules_time_sorted = [rules_time[i] for i in sort_idx]
-    print(rules_time_sorted)
-
+    # mins
+    rules_time_sorted = [rules_time[i]/60.0 for i in sort_idx]
+    rules_time_sorted_2 = [f'{x:.2f}' for x in rules_time_sorted]
     rules_prob = []
     for r in rules_s_sorted:
         p_r = 1.0
         for k in r:
             p_r *= cpms[k].p[1]
-        rules_prob.append(float(p_r))
+        rules_prob.append(p_r[0])
     print(rules_prob)
-
     # system survival probability
     start = time.time()
     Msys = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms[x] for x in comp_names])
     Msys = Msys.sum([varis[k] for k in G.nodes])
+    P_S1 = Msys.get_prob([varis['sys']], [1])
     P_S0_low = Msys.get_prob([varis['sys']], [0])
-    P_S0_up = 1.0 - Msys.get_prob([varis['sys']], [1])
+    P_S0_up = 1.0 - P_S1
     print(f"P(S=0) in ({P_S0_low}, {P_S0_up})")
 
     #figure
@@ -485,35 +507,42 @@ def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
     plt.bar(
         range(len(rules_prob) + 2),
         rules_prob + [P_S0_low, P_S0_up],
-        tick_label=rules_time_sorted + ['Disconn_low_bound', 'Disconn_up_bound'],
+        tick_label=rules_time_sorted_2 + ['Disconn_low_bound', 'Disconn_up_bound'],
         color=colors
     )
-    plt.xlabel("Travel Time (seconds)", fontsize=fsz)
+    plt.xlabel("Travel Time (mins)", fontsize=fsz)
     plt.ylabel("Rules Probability", fontsize=fsz)
     plt.xticks(fontsize=fsz, rotation=45)
     plt.yticks(fontsize=fsz)
-    fname = HOME.joinpath('./rules_prob.png')
+    plt.tight_layout()
+    fname = HOME.joinpath(f'./rules_prob_{od_name}.png')
     plt.savefig(fname)
     plt.close()
 
     # Bounds are obtained for incomplete BnB
     P_Xn0_S0 = {}
     for k in G.nodes:
+        # P(sys, x1 ...  .. xn | xk)
         Msys_k = inference.prod_Msys_and_Mcomps(cpms['sys'], [cpms[k2] for k2 in G.nodes if k2!=k]) # this is faster than var_elim (given that there are only a system event and component events to compute)
+        # P(sys | xk) by summing out except sys
         Msys_k = Msys_k.sum([varis['sys']], False)
+        # P(sys, xk) 
         Msys_k = Msys_k.product(cpms[k])
+        # P(sys=0, xk=0)
         p_num_low = Msys_k.get_prob([varis['sys'], varis[k]], [0, 0])
         p_num_up = 1.0 - Msys_k.get_prob([varis['sys'], varis[k]], [0, 1]) - Msys_k.get_prob([varis['sys'], varis[k]], [1, 0]) - Msys_k.get_prob([varis['sys'], varis[k]], [1, 1])
 
-        p_int = (p_num_low / P_S0_up, p_num_up / P_S0_low)
+        # P(xk=0|s=0) = P(xk=0, s=0) / p(s=0)
+        lower = max(0, p_num_low/P_S0_up)
+        upper = min(p_num_up/P_S0_low, 1)
+        p_int = (lower, upper)
         P_Xn0_S0[k] = p_int
-
 
     P_Xn0_S0_sorted = dict(sorted(P_Xn0_S0.items(), key=lambda item: item[1][0], reverse=True))
 
     # visualisation
     P_Xn0_S0_to_draw = list(P_Xn0_S0_sorted.items())[:20]
-
+    print(P_Xn0_S0_to_draw)
     # Extract labels, midpoints, and bounds
     labels = [k for k, _ in P_Xn0_S0_to_draw]
     low = [v[0] for _, v in P_Xn0_S0_to_draw]
@@ -522,22 +551,26 @@ def run_brc(file_dmg: str, od_name: str='Wooroloo_Merredin') -> None:
     error = [(m - l, h - m) for m, l, h in zip(mid, low, high)]
     lower_err, upper_err = zip(*error)
 
+    pdb.set_trace()
     # Plot as vertical error bars
-    plt.figure(figsize=(10, 6))
-    plt.errorbar(x=range(len(labels)), y=mid,
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.errorbar(x=range(len(labels)), y=mid,
                  yerr=[lower_err, upper_err],
                  fmt='o', capsize=10)
 
     # Formatting
-    plt.xticks(ticks=range(len(labels)), labels=labels, rotation=45, fontsize=fsz)
-    plt.ylabel("P(Xn=fail | S = fail)", fontsize=fsz)
-    plt.xlabel("Bridge ID", fontsize=fsz)
-    plt.yticks(fontsize=fsz)
+    ax.set_xticks(ticks=range(len(labels)), labels=labels)
+    fig.autofmt_xdate()
+    # , rotation=45, fontsize=fsz)
+    ax.set_ylabel("P(B=0|S=0)", fontsize=fsz)
+    ax.set_xlabel("Bridge ID", fontsize=fsz)
+    #ax.set_yticks(fontsize=fsz)
     plt.grid(True)
-    fn = HOME.joinpath('./CI_bounds.png')
-    plt.savefig(fn)
-    plt.close()
-
+    plt.tight_layout()
+    fn = HOME.joinpath(f'./CI_bounds_{od_name}.png')
+    fig.savefig(fn)
+    plt.close(fig)
+    print(f'{fn} saved')
 
 def get_selected_paths(cfg, od, route_file):
     """
@@ -549,7 +582,11 @@ def get_selected_paths(cfg, od, route_file):
     G = cfg.infra['G']
 
     # apply capacity threshold if exists
-    if od['capacity_fraction']:
+    try:
+        od['capacity_fraction']
+    except KeyError:
+        pass
+    else:
         edges_to_remove = [(u, v) for u, v, data in G.edges(data=True) if data.get('capacity', np.inf) < od['capacity_fraction']]
         G.remove_edges_from(edges_to_remove)
 
@@ -687,7 +724,7 @@ def single(file_dmg: str,
 
     run_survivability(file_model=file_model)
 
-    run_inference(file_model=file_model)
+    #run_inference(file_model=file_model)
 
 
 @app.command()
@@ -717,16 +754,19 @@ def run_inference(file_model: str) -> None:
     vars_inf = inference.get_inf_vars(cpms, od_name, VE_ord)
 
     Mod = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v != od_name])
-    #Mod.sort()
-
+    # check cpms of sys to understand the Mod.p
+    pdb.set_trace()
     plt.figure()
     p_flat = Mod.p.flatten()
     elapsed = [varis[od_name].values[int(x[0])] for x in Mod.C]
 
+
+    # P(p2)
+
     elapsed_in_mins = [f'{(x/60):.1f}' for x in elapsed]
     elapsed_in_mins = [f'{no_paths-x[0]}: {y}' if x[0] else y for x, y in zip(Mod.C, elapsed_in_mins)]
     plt.bar(range(len(p_flat)), p_flat, tick_label=elapsed_in_mins)
-
+    plt.tight_layout()
     plt.xlabel("Travel time (mins)")
     plt.ylabel("Probability")
     file_output = cfg.output_path.joinpath(f'{Path(file_model).stem}_travel.png')
@@ -770,25 +810,63 @@ def run_survivability(file_model: str) -> None:
     paths_rel = {}
     VE_ord = list(cfg.infra['nodes'].keys()) + path_names
     for path in path_names:
-        vars_inf = inference.get_inf_vars(cpms, path, VE_ord)
-        Mpath = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v!=path])
+        vars_inf = inference.get_inf_vars(cpms, path, VE_ord)  # list of variables
+        Mpath = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v != path])
         paths_rel[path] = Mpath.p[Mpath.C==1][0]
 
-    # FIXME: computing P(path=1|S)
-    vars_inf = inference.get_inf_vars(cpms, od_name, VE_ord)
-    Mobs = inference.condition([cpms[v] for v in vars_inf], [path_names[0]], [1])
-    # P(sys, path)
-    Mod = inference.variable_elim(Mobs, [v for v in vars_inf if v != od_name])
-    # P(path=1|S=1) = P(p,S) / P(S)
+    # P(S)
+    vars_inf = list(varis.keys())
+    Msys = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if v != od_name])
+    psys_fail = Msys.p[Msys.C==0][0]
 
     fig, ax = plt.subplots()
-    ax.bar(range(len(paths_rel)), paths_rel.values(), tick_label=list(paths_rel.keys()))
+    ax.bar(range(len(paths_rel) + 1), [psys_fail] + list(paths_rel.values()), tick_label=['Failure'] + list(paths_rel.keys()))
     fig.autofmt_xdate()
     ax.set_xlabel(f"Route: {od_name}")
     ax.set_ylabel("Reliability")
 
+    plt.tight_layout()
     file_output = cfg.output_path.joinpath(f'{Path(file_model).stem}_routes.png')
-    fig.savefig(file_output, dpi=100)
+    fig.savefig(file_output, dpi=200)
+    plt.close(fig)
+    print(f'{file_output} saved')
+
+    print(f'paths_rel: {paths_rel}')
+    print(f'psys_fail: {psys_fail}')
+
+    # computing P(path=1|S=1) = P(path=1|S!=0) 
+    # P(path=1, S!=0) / P(S!=0) = P(S!=0|path=1) * P(path=1) / P(S!=0) = P(path=1) / P(S!=0)
+
+    # P(br=0|S=0) 
+    p_br0_s0 = {}
+    for br in cfg.infra['nodes']:
+        Msys_br = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if (v != br) & (v != od_name)])
+        p_s0_br0 = Msys_br.p[np.all(Msys_br.C==0, axis=1)].sum()
+        p_br0_s0[br] = p_s0_br0 * cpms[br].p[cpms[br].C==0][0] / psys_fail
+    p_br0_s0_sorted = dict(sorted(p_br0_s0.items(), key=lambda item: item[1], reverse=True))
+
+    # visualisation
+    max_pts = 20
+    thres = 1.0e-3
+    p_br0_s0_draw = list(p_br0_s0_sorted.values())[:max_pts]
+    p_br0_s0_draw = [x for x in p_br0_s0_draw if x > thres]
+    labels = list(p_br0_s0_sorted.keys())[:len(p_br0_s0_draw)]
+
+    # Plot as vertical error bars
+    fig, ax = plt.subplots(figsize=(6, 4))
+    ax.scatter(x=range(len(labels)), y=p_br0_s0_draw)
+
+    # Formatting
+    ax.set_xticks(ticks=range(len(labels)), labels=labels)
+    fig.autofmt_xdate()
+    ax.set_ylabel("P(B=0|S=0)")
+    ax.set_xlabel("Bridge ID")
+    #ax.set_yticks()
+    plt.grid(True)
+    plt.tight_layout()
+    file_output = cfg.output_path.joinpath(f'{Path(file_model).stem}_p_br_fail.png')
+    fig.savefig(file_output, dpi=200)
+    plt.close(fig)
     print(f'{file_output} saved')
 
     # create shp file
@@ -801,6 +879,198 @@ def run_survivability(file_model: str) -> None:
         outfile = cfg.output_path.joinpath(f'{Path(file_model).stem}_nodes.csv')
         df_pf = pd.Series({x: v['failure'] for x, v in cfg.infra['nodes'].items()}, name='failure')
         df_pf.sort_values(ascending=False).to_csv(outfile, float_format='%.2f')
+
+
+@app.command()
+def map_bridges(file_dmg: str=HOME.joinpath('./avg_gmf_69_dmg.csv'),
+                od_name: str='Wooroloo_Merredin',
+                route_file: str=HOME.joinpath('./model_Wooroloo_Merredin_3.json'),
+                path_file: str=HOME.joinpath('./model_Wooroloo_Merredin_3_paths.json')):
+
+    # requires gis env
+    cfg = config.Config(HOME.joinpath('./config.json'))
+    valid_paths = get_selected_paths(cfg, cfg.infra['ODs'][od_name], route_file)
+    path_names = list(valid_paths.keys())
+
+    update_nodes_given_dmg(cfg.infra['nodes'], file_dmg, valid_paths)
+
+    # gmf
+    df = pd.read_csv(file_dmg, index_col=0)
+    # only shows included in the cfg
+    #pdb.set_trace()
+    df = df.loc[df.index.isin(list(cfg.infra['G'].nodes))].copy()
+    df['fail'] = df['Extensive'] + df['Complete']
+    df['label'] = df.apply(lambda x: f'{x.name}: {x.fail:.2f}',axis = 1)
+
+    fig = go.Figure()
+
+    with open(path_file, 'r') as f:
+        directions_result = json.load(f)
+
+    _dic = {}
+
+    colors = {0: 'red', 1: 'blue', 2: 'green'}
+    for k, item in enumerate(directions_result):
+        poly_line = item['overview_polyline']['points']
+        geometry_points = [(x[1], x[0]) for x in polyline.decode(poly_line)]
+
+        #distance_km = sum([x['distance']['value']  for x in item['legs']]) / 1000.0
+        #duration_mins = sum([x['duration']['value']  for x in item['legs']]) / 60.0
+        linestring = shapely.LineString(geometry_points)
+
+        x, y = linestring.xy
+        lons = x.tolist()
+        lats = y.tolist()
+        #lats = np.append(lats, y)
+        #lons = np.append(lons, x)
+        #names = np.append(names, [name]*len(y))
+        #lats = np.append(lats, None)
+        #lons = np.append(lons, None)
+        #names = np.append(names, None)
+
+        fig.add_trace(go.Scattermap(
+            lon = lons,
+            lat = lats,
+            mode = 'lines',
+            line=dict(width=2,
+                      color=colors[k]),
+            name=f'Path {k + 1}'
+            #center=dict(lat=-31.61, lon=117.36),
+            #map_style="open-street-map",
+            #hovertemplate='%{lon},%{lat}<extra></extra>',
+        ))
+
+
+    fig.add_trace(go.Scattermap(
+        lat=df["LATITUDE"],
+        lon=df["LONGITUDE"],
+        mode='markers+text',
+        name='Bridge',
+        marker=dict(
+            color=np.where(np.logical_and(df['fail'].values < 0.1, 0.1 >= df['fail'].values), 'grey', 'magenta'),
+            size=6,
+            #text=df.index,
+            ),
+            #colorscale=[[0, 'grey'], [1, 'red']],
+            #showscale=True),
+            #cmin=0, cmax=1),
+            #text=df.index,
+        #textdict(width=2,
+        #color="fail_cat",
+        #title = f"f Scenario {label}",
+        #hover_data={
+        #    "lat": True,  # remove from hover data
+        #    "lon": True,  # remove from hover data
+        #    "gmv_PGA": True,
+        #},
+        #center=dict(lat=-31.61, lon=117.36),
+        #zoom=7,
+        #radius=1,
+        #opacity=0.7,
+        #map_style="open-street-map",
+        #range_color = [0, 1.0],
+        #color_discrete_sequence = px.colors.qualitative.Plotly,
+        #color_discrete_map = color_discrete_map,
+        #labels = labels_map,
+        #color_continuous_scale = px.colors.diverging.RdBu_r,
+        #color_continuous_scale="Blackbody_r",
+        #color_continuous_midpoint = 0.1,
+        #tickvals = bins,
+        #ticktext = labels_colorbar
+    ))
+
+    for k in ['Wooroloo', 'Merredin']:
+        fig.add_trace(go.Scattermap(
+            lat=[cfg.infra['G'].nodes[k]['pos'][1]],
+            lon=[cfg.infra['G'].nodes[k]['pos'][0]],
+            mode='markers+text',
+            name=k,
+            marker=dict(
+            color='black',
+            symbol='square',
+            size=8,
+            ),
+            textposition='top right',
+            text=k,
+            showlegend=False,
+    ))
+
+    # epicenter
+    fig.add_trace(go.Scattermap(
+        lat = [-31.836],
+        lon=[116.550],
+        mode='markers+text',
+        name='Mw 6.58',
+        marker=dict(
+        color='red',
+        symbol='star',
+        size=8,
+        ),
+        textposition='top right',
+        text='Epicentre',
+        showlegend=False,
+))
+
+
+
+
+    #fig_path = px.line_map(lat=lats, lon=lons)
+    #df_path = pd.DataFrame.from_dict(_dic)
+
+   #gdf = gpd.GeoDataFrame(
+    #pdb.set_trace()
+
+    bins = [0.0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 1.0]
+    labels = range(len(bins)-1)
+    color_discrete_map = {i: v for i, v in enumerate(px.colors.sequential.RdBu_r[:len(labels)])}
+    labels_colorbar=['(0, 0.05)', '(0.05, 0.1)','(0.1, 0.15)', '(0.15, 0.2)', '(0.2, 0.3)', '(0.3, 0.4)', '(0.4, 0.5)', '(0.5, 0.6)', '(0.6, 1.0)']
+
+    #color_discrete_map = {i: v for i, v in zip(labels_colorbar, px.colors.sample_colorscale(px.colors.sequential.Blackbody_r, len(labels_colorbar)))}
+
+    df['fail_cat'] = pd.cut(df['fail'], bins, labels=labels_colorbar)
+
+    labels_map = {'fail_cat': 'Bridge failure prob.(%)'}
+
+    #}{str(k):v for k, v in zip(labels, labels_colorbar)}
+
+    #fig.update_geos(visible=True, resolution=50,
+    #            #fitbounds='locations',
+    #            showcountries=True, countrycolor="Black",
+    #            showsubunits=True, subunitcolor="grey")
+    fig.update_layout(
+        autosize=True,
+        height=800,
+        title = 'Title',
+        geo=dict(
+        scope='world',
+        showland=True,
+        landcolor="lightgray",
+        showocean=True,
+        oceancolor="lightblue",
+        showcountries=True,
+        countrycolor="gray",
+        projection_type='natural earth'
+        )
+    )
+
+    fig.show()
+
+
+    """
+    fig2 = px.line_mapbox(df_roads,
+                          lon=df_roads['x'],
+                          lat=df_roads['y'],
+                          line_group=df_roads['index'],
+                          hover_name=df_roads['FULLNAME'])\
+                          .update_traces(visible=True,
+                                         name='Roads',
+                                         legendgroup='Roads',
+                                         legendgrouptitle_text='All_Roads',
+                                         showlegend=True)
+    """
+    #outfile = Path(file_dmg).parent.joinpath(Path(file_dmg).stem + '_paper.png')
+    #fig.write_image(outfile, scale=3)
+
 
 
 if __name__=='__main__':

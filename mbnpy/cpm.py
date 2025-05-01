@@ -12,7 +12,7 @@ class Cpm(object):
     '''Defines the conditional probability matrix (CPM).
     CPM plays the same role as CPT in conventional Bayesian networks.
     Ref: Byun et al. (2019). Matrix-based Bayesian Network for
-    efficient memory storage and flexible inference. 
+    efficient memory storage and flexible inference.
     Reliability Engineering & System Safety, 185, 533-545.
 
     Attributes:
@@ -58,7 +58,7 @@ class Cpm(object):
                 self._q == other._q and
                 (
                     (not self._ps or not other._ps or self._ps == other._ps) and
-                    (not self._sample_idx or not other._sample_idx or 
+                    (not self._sample_idx or not other._sample_idx or
                      self._sample_idx == other._sample_idx)
                 )
             )
@@ -225,7 +225,7 @@ class Cpm(object):
 
             all(isinstance(y, (float, np.float32, np.float64, int, np.int32, np.int64)) for y in value), 'p must be a numeric vector'
 
-        self._sample_idx = value    
+        self._sample_idx = value
 
 
     def product(self, M):
