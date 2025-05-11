@@ -11,6 +11,7 @@ import sys
 import pickle
 import numpy as np
 import time
+import json
 #import editdistance
 
 from mbnpy import variable, branch
