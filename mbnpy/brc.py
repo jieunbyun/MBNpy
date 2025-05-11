@@ -567,3 +567,18 @@ def eval_rules_prob(rules_list, s_or_f, probs):
         raise ValueError('s_or_f input variable must be a string either "s" or "f".')
 
     return probs_list
+
+def save_brc_data(rules, brs, sys_res, monitor, output_folder = "brc_data", fname_prefix="", fname_suffix = ""):
+    fpath_rule = f"./{output_folder}/{fname_prefix+'_' if fname_prefix else ''}rules{'_'+fname_suffix if fname_suffix else ''}.json"
+    with open(fpath_rule, "w") as f:
+        json.dump(rules, f, indent=4)
+
+    fpath_br = f"./{output_folder}/{fname_prefix+'_' if fname_prefix else ''}brs{'_'+fname_suffix if fname_suffix else ''}.parquet"
+    branch.save_brs_to_parquet(brs, fpath_br)
+
+    fpath_mon = f"./{output_folder}/{fname_prefix+'_' if fname_prefix else ''}monitor{'_'+fname_suffix if fname_suffix else ''}.json"
+    with open(fpath_mon, "w") as f:
+        json.dump(monitor, f, indent=4)
+
+    fpath_res = f"./{output_folder}/{fname_prefix+'_' if fname_prefix else ''}sys_res{'_'+fname_suffix if fname_suffix else ''}.json"
+    sys_res.to_json( fpath_res, orient='records', lines=True )
