@@ -1,5 +1,6 @@
 import numpy as np
 from itertools import chain, combinations
+from mbnpy.extern.tabulate import tabulate
 
 class Variable:
     """
@@ -87,17 +88,36 @@ class Variable:
             return False
 
     def __repr__(self):
+        #if self._B is None:
+        #    return (
+        #        f"<Variable representing {repr(self._name)} at {hex(id(self))},\n"
+        #        f"values={repr(self._values)},\n"
+        #        f"B_flag={repr(self._B_flag)})"
+        #    )
+        #else:
+        #    b = [(i, f'{x}') for i, x in enumerate(self._B)]
+        return (
+                f"<Variable representing {repr(self._name)}({repr(self._values)}) at {hex(id(self))}>\n"
+                #f"values={repr(self._values)}\n"
+                #f"{tabulate(b, headers=['idx', 'value'], tablefmt='grid')}"
+            )
+
+    def __str__(self):
         if self._B is None:
             return (
-                f"Variable(name={repr(self._name)},\n"
-                f"  values={repr(self._values)},\n"
-                f"  B_flag={repr(self._B_flag)})"
+                #f"<Variable representing {repr(self._name)} at {hex(id(self))}>\n"
+                f"<Variable representing {repr(self._name)}({repr(self._values)}) at {hex(id(self))}>\n"
+                #f"values={repr(self._values)}\n"
+                f"B_flag={repr(self._B_flag)})"
             )
         else:
+            header = ['idx', 'B']
+            b = [(i, f'{x}') for i, x in enumerate(self._B)]
             return (
-                f"Variable(name={repr(self._name)},\n"
-                f"  values={repr(self._values)},\n"
-                f"  B={repr(self._B)})"
+                #f"<Variable representing {repr(self._name)} at {hex(id(self))}>\n"
+                f"<Variable representing {repr(self._name)}({repr(self._values)}) at {hex(id(self))}>\n"
+                #f"values={repr(self._values)}\n"
+                f"{tabulate(b, headers=header, tablefmt='grid')}"
             )
 
     # Property for 'name'
