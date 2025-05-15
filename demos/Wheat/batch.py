@@ -837,17 +837,20 @@ def run_survivability(file_model: str) -> None:
     # computing P(path=1|S=1) = P(path=1|S!=0) 
     # P(path=1, S!=0) / P(S!=0) = P(S!=0|path=1) * P(path=1) / P(S!=0) = P(path=1) / P(S!=0)
 
-    # P(br=0|S=0) 
+    # P(br=0|S=0)  = P(br=0, S=0) / P(S=0)
     p_br0_s0 = {}
     for br in cfg.infra['nodes']:
         Msys_br = inference.variable_elim([cpms[k] for k in vars_inf], [v for v in vars_inf if (v != br) & (v != od_name)])
         p_s0_br0 = Msys_br.p[np.all(Msys_br.C==0, axis=1)].sum()
-        p_br0_s0[br] = p_s0_br0 * cpms[br].p[cpms[br].C==0][0] / psys_fail
+        #p_br0_s0[br] = p_s0_br0 * cpms[br].p[cpms[br].C==0][0] / psys_fail
+        p_br0_s0[br] = p_s0_br0 / psys_fail
     p_br0_s0_sorted = dict(sorted(p_br0_s0.items(), key=lambda item: item[1], reverse=True))
 
+    # P(br=0|P=0) = P(P=0|br=0) * P(br=0)/ P(P=0) = P(br=0) / P(P=0) ~= P(br=0)
+
     # visualisation
-    max_pts = 20
-    thres = 1.0e-3
+    max_pts = 10
+    thres = 1.0e-1
     p_br0_s0_draw = list(p_br0_s0_sorted.values())[:max_pts]
     p_br0_s0_draw = [x for x in p_br0_s0_draw if x > thres]
     labels = list(p_br0_s0_sorted.keys())[:len(p_br0_s0_draw)]

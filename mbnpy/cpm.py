@@ -6,7 +6,7 @@ from scipy.stats import norm, beta
 
 from mbnpy.variable import Variable
 from mbnpy import utils
-
+from mbnpy.extern.tabulate import tabulate
 
 class Cpm(object):
     '''Defines the conditional probability matrix (CPM).
@@ -66,8 +66,29 @@ class Cpm(object):
             return False
 
     def __repr__(self):
+
+        if len(self.get_names()) > 7:
+            names = self.get_names()[1:4] + '...' + self.get_names()[-3:]
+        else:
+            names = self.get_names()[1:]
+
+        _str = self.get_names()[0] + ' | ' + ", ".join(names)
+
+        return f"<CPM representing P({_str}) at at {hex(id(self))}>"
+
+
+    def __str__(self):
+
+        if len(self.get_names()) > 7:
+            names = self.get_names()[1:4] + '...' + self.get_names()[-3:]
+        else:
+            names = self.get_names()[1:]
+
+        _str = self.get_names()[0] + ' | ' + ", ".join(names)
+
         details = [
-            f"{self.__class__.__name__}(variables={self.get_names()},",
+            f"<CPM representing P({_str}) at at {hex(id(self))}>",
+            f"(variables={self.variables},",
             f"no_child={self.no_child},",
             f"C={self.C},",
             f"p={self.p},",
