@@ -24,7 +24,7 @@ class Variable:
     Each column corresponds to a basic state.
 
     For example, with 3 basic states, the mapping matrix B is:
-    
+
         [[1, 0, 0],
          [0, 1, 0],
          [0, 0, 1],

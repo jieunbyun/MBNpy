@@ -3,6 +3,7 @@ import textwrap
 import copy
 import warnings
 from scipy.stats import norm, beta
+from shutil import get_terminal_size
 
 from mbnpy.variable import Variable
 from mbnpy import utils
@@ -85,15 +86,19 @@ class Cpm(object):
             names = self.get_names()[1:]
 
         _str = self.get_names()[0] + ' | ' + ", ".join(names)
+        header = self.get_names() + ['p']
+        c_p = np.append(self.C, self.p, axis=1)
+        cpm_str = tabulate(c_p, headers=header, tablefmt='grid')
+
+        # replace | with || 
+        cpm_str = self._condition_strtable(cpm_str)
+        cpm_str = self._truncate_strtable(cpm_str)
 
         details = [
-            f"<CPM representing P({_str}) at at {hex(id(self))}>",
-            f"(variables={self.variables},",
-            f"no_child={self.no_child},",
-            f"C={self.C},",
-            f"p={self.p},",
+            f"<CPM representing P({_str}) at {hex(id(self))}>",
+            f"{cpm_str}",
         ]
-
+        """
         if self._Cs.size:
             details.append(f"Cs={self._Cs},")
         if self._q.size:
@@ -102,9 +107,69 @@ class Cpm(object):
             details.append(f"ps={self._ps},")
         if self._sample_idx.size:
             details.append(f"sample_idx={self._sample_idx},")
-
         details.append(")")
+        """
         return "\n".join(details)
+
+    def _condition_strtable(self, cdf_str):
+
+        list_rows_str = cdf_str.split("\n")
+
+        idx_child = findnth(list_rows_str[1], '|', self.no_child)
+
+        idx_p = findnth(list_rows_str[1], '|', list_rows_str[1].count('|') - 2)
+
+        new_cpm_str = [list_rows_str[0]]
+        for i, line in enumerate(list_rows_str[1:-1], 1):
+            if i % 2 == 1:
+                new_line = line[:idx_child-1] + ' [' + line[idx_child+1:idx_p-1] + ' ]' + line[idx_p+1:]
+            else:
+                new_line = line
+
+            new_cpm_str.append(new_line)
+
+        return "\n".join(new_cpm_str)
+
+
+
+
+    def _truncate_strtable(self, cdf_str):
+        terminal_width, terminal_height = get_terminal_size()
+
+        list_rows_str = cdf_str.split("\n")
+
+        table_width, table_height = len(list_rows_str[0]), len(list_rows_str)
+
+        colstr_i = np.array(
+            [pos for pos, char in enumerate(list_rows_str[0]) if char == "+"]
+        )
+
+        if table_width > terminal_width:
+            half_width = terminal_width // 2 - 3
+
+            left_i = colstr_i[colstr_i < half_width][-1]
+            right_i = colstr_i[(table_width - colstr_i) < half_width][0]
+
+            new_cdf_str = []
+            for temp_row_str in list_rows_str:
+                left = temp_row_str[: left_i + 1]
+                right = temp_row_str[right_i:]
+                if temp_row_str[left_i] == "+":
+                    joiner = "-----"
+                else:
+                    joiner = " ... "
+                new_cdf_str.append(left + joiner + right)
+
+            cdf_str = "\n".join(new_cdf_str)
+
+        # TODO: vertical limiter
+        # if table_height > terminal_height:
+        #     half_height = terminal_height // 2
+
+        return cdf_str
+
+ 
+
 
     # Properties
     @property
@@ -1362,3 +1427,9 @@ def get_prod(A, B):
 
     return prod_sign * prod_val
 
+
+def findnth(haystack, needle, n):
+    parts= haystack.split(needle, n+1)
+    if len(parts)<=n+1:
+        return -1
+    return len(haystack)-len(parts[-1])-len(needle)
