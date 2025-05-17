@@ -324,9 +324,9 @@ def get_state(comp, rules):
 
 def update_rule_set(rules, new_rule):
     """
-    rules: list of rules
-           e.g., [({'x1': 2, 'x2': 2}, 's')]
-    new_rule: a rule
+    rules: dict of rule list
+           e.g., {'s': [{'x1': 2, 'x2': 2}, ..], 'f': [{..}, ..]}
+    new_rule: tutple of (rule, system state)
              e.g., ({'x1': 2}, 's')
     """
     assert isinstance(new_rule, tuple), f'rule should be a tuple: {type(new_rule)}'
