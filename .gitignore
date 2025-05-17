@@ -7,6 +7,8 @@
 *.coverage
 *.swp
 **/__pycache__
+**/.pytest_cache
+**/.vscode
 # pycharm
 .idea
 .vscode
