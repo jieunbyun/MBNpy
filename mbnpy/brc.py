@@ -146,6 +146,7 @@ def init_monitor():
 
     monitor = {'pf_up': [], # upper bound on pf
                'pf_low': [], # lower bound on pf
+               'pr_brs': [], # prob. of branches (can be <1 in case event space is a subset of total space)
                'pr_bu': [], # prob. of unknown branches
                'no_br': [], # number of branches
                'no_bs': [], # number of branches-survival (br_s_ns)
@@ -177,12 +178,15 @@ def update_monitor(monitor, brs, rules, start):
 
     end = time.time() # monitoring purpose
 
+    pr_brs = sum([br.p for br in brs]) # prob. of branches (<1 in case event space is a subset of total space)
     pr_bf = sum([br.p for br in brs if br.up_state == 'f']) # prob. of failure branches
     pr_bs = sum([br.p for br in brs if br.down_state == 's']) # prob. of survival branches
+    pr_bu = pr_brs - pr_bf - pr_bs # prob. of unknown branches
 
     monitor['pf_low'].append(pr_bf) # lower bound on pf
-    monitor['pf_up'].append(1.0 - pr_bs)  # upper bound of pf
-    monitor['pr_bu'].append(1.0 - pr_bf - pr_bs) # prob. of unknown branches
+    monitor['pf_up'].append(pr_brs - pr_bs)  # upper bound of pf
+    monitor['pr_bu'].append(pr_brs - pr_bf - pr_bs) # prob. of unknown branches
+    monitor['pr_brs'].append(pr_brs) # prob. of branches 
 
     no_rf = len(rules['f'])
     no_rs = len(rules['s'])
@@ -235,7 +239,7 @@ def display_msg(monitor):
             last[k] = v
 
     print(f"The # of found non-dominated rules (f, s): {last['no_ra']} ({last['no_rf']}, {last['no_rs']})")
-    print(f"Probability of branchs (f, s, u): ({last['pf_low']:.4e}, {1-last['pf_up']:.2e}, {last['pr_bu']:.4e})")
+    print(f"Probability of branchs (f, s, u): ({last['pf_low']:.4e}, {last['pr_brs']-last['pf_up']:.2e}, {last['pr_bu']:.4e})")
     print(f"The # of branches (f, s, u), (min, avg) len of rf: {last['no_br']} ({last['no_bf']}, {last['no_bs']}, {last['no_bu']}), ({last['min_len_rf']}, {last['avg_len_rf']:.2f})")
     print(f"Elapsed seconds (average per round): {sum(monitor['time']):1.2e} ({np.mean(monitor['time']):1.2e})")
 
