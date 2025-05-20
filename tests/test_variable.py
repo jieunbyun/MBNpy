@@ -1,7 +1,9 @@
 import numpy as np
 import pytest
+import pdb
 
 from mbnpy import variable
+from mbnpy.extern.tabulate import tabulate
 
 np.set_printoptions(precision=3)
 
@@ -18,6 +20,7 @@ def test_init1():
     np.testing.assert_array_equal(a.values, value)
     np.testing.assert_array_equal(a.B_flag, 'auto')
     np.testing.assert_array_equal(a.B, [{0}, {1}, {0, 1}])
+
 
 def test_init2():
     name = 'A'
@@ -42,6 +45,43 @@ def test_init3():
     np.testing.assert_array_equal(a.values, value)
     np.testing.assert_array_equal(a.B_flag, 'fly')
     assert a.B is None
+
+
+def test_str():
+
+    name = 'A'
+    value = ['failure', 'survival']
+
+    var = {'name': name, 'values': value}
+    a = variable.Variable(**var)
+
+    assert repr(a) == f"<Variable representing A[failure, survival] at {hex(id(a))}>"
+
+    header = ['index', 'B']
+    b = [(i, f'{x}') for i, x in enumerate(a._B)]
+
+    line2 = tabulate(b, header, tablefmt='grid')
+    assert '\n'.join(str(a).split('\n')[1:]) == line2
+
+
+def test_str2():
+    name = 'A'
+    a = variable.Variable(name, B_flag='fly')
+    value = [str(x) for x in range(5)]
+    a.values = value
+
+    assert isinstance(a, variable.Variable)
+    np.testing.assert_array_equal(a.name, name)
+    np.testing.assert_array_equal(a.values, value)
+    np.testing.assert_array_equal(a.B_flag, 'fly')
+    assert a.B is None
+
+    # assign B
+    a._B = a.gen_B()
+
+    assert repr(a) == f"<Variable representing A[0, 1, 2, 3, 4] at {hex(id(a))}>"
+    assert str(a)
+    print(a)
 
 def test_eq1():
     name = 'A'

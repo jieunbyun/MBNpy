@@ -1,6 +1,8 @@
 import numpy as np
 from itertools import chain, combinations
+from shutil import get_terminal_size
 from mbnpy.extern.tabulate import tabulate
+
 
 class Variable:
     """
@@ -88,37 +90,90 @@ class Variable:
             return False
 
     def __repr__(self):
-        #if self._B is None:
-        #    return (
-        #        f"<Variable representing {repr(self._name)} at {hex(id(self))},\n"
-        #        f"values={repr(self._values)},\n"
-        #        f"B_flag={repr(self._B_flag)})"
-        #    )
-        #else:
-        #    b = [(i, f'{x}') for i, x in enumerate(self._B)]
         return (
-                f"<Variable representing {repr(self._name)}({repr(self._values)}) at {hex(id(self))}>\n"
-                #f"values={repr(self._values)}\n"
-                #f"{tabulate(b, headers=['idx', 'value'], tablefmt='grid')}"
-            )
+                f"<Variable representing {self._name}[{', '.join(self._values)}] at {hex(id(self))}>"
+           )
 
     def __str__(self):
         if self._B is None:
             return (
-                #f"<Variable representing {repr(self._name)} at {hex(id(self))}>\n"
-                f"<Variable representing {repr(self._name)}({repr(self._values)}) at {hex(id(self))}>\n"
-                #f"values={repr(self._values)}\n"
+                f"<Variable representing {self._name}[{', '.join(self._values)}] at {hex(id(self))}>\n"
                 f"B_flag={repr(self._B_flag)})"
             )
         else:
-            header = ['idx', 'B']
+            header = ['index', 'B']
             b = [(i, f'{x}') for i, x in enumerate(self._B)]
+            var_str = tabulate(b, headers=header, tablefmt='grid')
+            var_str = self._truncate_strtable(var_str)
+
             return (
-                #f"<Variable representing {repr(self._name)} at {hex(id(self))}>\n"
-                f"<Variable representing {repr(self._name)}({repr(self._values)}) at {hex(id(self))}>\n"
-                #f"values={repr(self._values)}\n"
-                f"{tabulate(b, headers=header, tablefmt='grid')}"
+                f"<Variable representing {self._name}[{', '.join(self._values)}] at {hex(id(self))}>\n"
+                f"{var_str}"
             )
+
+    def _truncate_strtable(self, var_str):
+
+        terminal_width, terminal_height = get_terminal_size()
+        list_rows_str = var_str.split("\n")
+
+        table_width, table_height = len(list_rows_str[0]), len(list_rows_str)
+
+        if table_width > terminal_width:
+            colstr_i = np.array(
+                [pos for pos, char in enumerate(list_rows_str[0]) if char == "+"]
+            )
+
+            half_width = terminal_width // 2 - 3
+
+            left_i = colstr_i[colstr_i < half_width][-1]
+            right_i = colstr_i[(table_width - colstr_i) < half_width][0]
+
+            new_var_str = []
+            for temp_row_str in list_rows_str:
+                left = temp_row_str[: left_i + 1]
+                right = temp_row_str[right_i:]
+                if temp_row_str[left_i] == "+":
+                    joiner = "-----"
+                else:
+                    joiner = " ... "
+                new_var_str.append(left + joiner + right)
+
+            var_str = "\n".join(new_var_str)
+
+        if table_height > terminal_height:
+
+            half_height = terminal_height // 2 - 3
+
+            list_rows_str = var_str.split("\n")
+            mid = findnth(list_rows_str[0], '+', 1)
+
+            if half_height % 2:
+                first_chunk = half_height + 2
+                mid_chunk = half_height + 1
+                last_chunk = -half_height + 2
+            else:
+                first_chunk = half_height + 1
+                mid_chunk = half_height
+                last_chunk = -half_height + 1
+
+            new_var_str = list_rows_str[:first_chunk]
+            no_cross = list_rows_str[mid_chunk].count('+')
+            re_line = list(table_width * ' ')
+            idx_cross = [findnth(list_rows_str[mid_chunk], '+', i) for i in range(no_cross)]
+            mid_cross = [(x + y)//2 for x, y in zip(idx_cross[:-1], idx_cross[1:])]
+            re_line = list(table_width * ' ')
+            for i in idx_cross:
+                re_line[i] = '|'
+            for i in mid_cross:
+                re_line[i] = ':'
+            re_line = ''.join(re_line)
+            new_var_str.append(re_line)
+
+            [new_var_str.append(x) for x in list_rows_str[last_chunk:]]
+
+            var_str = "\n".join(new_var_str)
+
+        return var_str
 
     # Property for 'name'
     @property
@@ -334,3 +389,8 @@ class Variable:
         Bst = np.apply_along_axis(self.get_state_from_vector, -1, Bvec)
         return Bst
 
+def findnth(haystack, needle, n):
+    parts= haystack.split(needle, n+1)
+    if len(parts)<=n+1:
+        return -1
+    return len(haystack)-len(parts[-1])-len(needle)
