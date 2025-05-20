@@ -5,7 +5,7 @@ import warnings
 from scipy.stats import norm, beta
 from shutil import get_terminal_size
 
-from mbnpy.variable import Variable
+from mbnpy.variable import Variable, findnth
 from mbnpy import utils
 from mbnpy.extern.tabulate import tabulate
 
@@ -69,30 +69,38 @@ class Cpm(object):
     def __repr__(self):
 
         if len(self.get_names()) > 7:
-            names = self.get_names()[1:4] + '...' + self.get_names()[-3:]
+            names = self.get_names()[min(3, self._no_child)] + '...' + self.get_names()[-max(3, no_child-1):]
         else:
-            names = self.get_names()[1:]
+            names = self.get_names()[self._no_child:]
 
-        _str = self.get_names()[0] + ' | ' + ", ".join(names)
+        _str = ", ".join(self.get_names()[0:self._no_child]) + ' | ' + ", ".join(names)
 
-        return f"<CPM representing P({_str}) at at {hex(id(self))}>"
+        return f"<CPM representing P({_str}) at {hex(id(self))}>"
 
 
     def __str__(self):
 
+        #if len(self.get_names()) > 7:
+        #    names = self.get_names()[min(3, self._no_child)] + '...' + self.get_names()[-max(3, no_child-1):]
+        #else:
+        names = self.get_names()[self._no_child:]
+
+        _str = ", ".join(self.get_names()[:self._no_child]) + ' | ' + ", ".join(names)
+
+        """
         if len(self.get_names()) > 7:
             names = self.get_names()[1:4] + '...' + self.get_names()[-3:]
         else:
             names = self.get_names()[1:]
-
         _str = self.get_names()[0] + ' | ' + ", ".join(names)
+        """
         header = self.get_names() + ['p']
         c_p = np.append(self.C, self.p, axis=1)
         cpm_str = tabulate(c_p, headers=header, tablefmt='grid')
 
         # replace | with || 
-        cpm_str = self._condition_strtable(cpm_str)
         cpm_str = self._truncate_strtable(cpm_str)
+        cpm_str = self._condition_strtable(cpm_str)
 
         details = [
             f"<CPM representing P({_str}) at {hex(id(self))}>",
@@ -111,9 +119,10 @@ class Cpm(object):
         """
         return "\n".join(details)
 
-    def _condition_strtable(self, cdf_str):
 
-        list_rows_str = cdf_str.split("\n")
+    def _condition_strtable(self, cpm_str):
+
+        list_rows_str = cpm_str.split("\n")
 
         idx_child = findnth(list_rows_str[1], '|', self.no_child)
 
@@ -127,16 +136,15 @@ class Cpm(object):
                 new_line = line
 
             new_cpm_str.append(new_line)
+        new_cpm_str.append(list_rows_str[-1])
 
         return "\n".join(new_cpm_str)
 
 
-
-
-    def _truncate_strtable(self, cdf_str):
+    def _truncate_strtable(self, cpm_str):
         terminal_width, terminal_height = get_terminal_size()
 
-        list_rows_str = cdf_str.split("\n")
+        list_rows_str = cpm_str.split("\n")
 
         table_width, table_height = len(list_rows_str[0]), len(list_rows_str)
 
@@ -150,7 +158,7 @@ class Cpm(object):
             left_i = colstr_i[colstr_i < half_width][-1]
             right_i = colstr_i[(table_width - colstr_i) < half_width][0]
 
-            new_cdf_str = []
+            new_cpm_str = []
             for temp_row_str in list_rows_str:
                 left = temp_row_str[: left_i + 1]
                 right = temp_row_str[right_i:]
@@ -158,17 +166,43 @@ class Cpm(object):
                     joiner = "-----"
                 else:
                     joiner = " ... "
-                new_cdf_str.append(left + joiner + right)
+                new_cpm_str.append(left + joiner + right)
 
-            cdf_str = "\n".join(new_cdf_str)
+            cpm_str = "\n".join(new_cpm_str)
 
-        # TODO: vertical limiter
-        # if table_height > terminal_height:
-        #     half_height = terminal_height // 2
+        if table_height > terminal_height:
 
-        return cdf_str
+            half_height = terminal_height // 2 - 3
 
- 
+            list_rows_str = cpm_str.split("\n")
+            mid = findnth(list_rows_str[0], '+', 1)
+
+            if half_height % 2:
+                first_chunk = half_height + 2
+                mid_chunk = half_height + 1
+                last_chunk = -half_height + 2
+            else:
+                first_chunk = half_height + 1
+                mid_chunk = half_height
+                last_chunk = -half_height + 1
+
+            new_cpm_str = list_rows_str[:first_chunk]
+            no_cross = list_rows_str[mid_chunk].count('+')
+            idx_cross = [findnth(list_rows_str[mid_chunk], '+', i) for i in range(no_cross)]
+            mid_cross = [(x + y)//2 for x, y in zip(idx_cross[:-1], idx_cross[1:])]
+            re_line = list(table_width * ' ')
+            for i in idx_cross:
+                re_line[i] = '|'
+            for i in mid_cross:
+                re_line[i] = ':'
+            re_line = ''.join(re_line)
+            new_cpm_str.append(re_line)
+
+            [new_cpm_str.append(x) for x in list_rows_str[last_chunk:]]
+
+            cpm_str = "\n".join(new_cpm_str)
+
+        return cpm_str
 
 
     # Properties
@@ -1428,8 +1462,4 @@ def get_prod(A, B):
     return prod_sign * prod_val
 
 
-def findnth(haystack, needle, n):
-    parts= haystack.split(needle, n+1)
-    if len(parts)<=n+1:
-        return -1
-    return len(haystack)-len(parts[-1])-len(needle)
+

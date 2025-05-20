@@ -422,6 +422,21 @@ def test_init5():
         a.variables = ['1']
 
 
+def test_repr(dict_cpm):
+
+    a = cpm.Cpm(**dict_cpm)
+    assert isinstance(a, cpm.Cpm)
+
+    assert repr(a) == f"<Cpm representing P(A3 | A2, A1) at {hex(id(a))}>"
+
+
+def test_str(setup_condition):
+
+    a = setup_condition
+    assert str(a)
+    print(a)
+
+
 def test_variables1(dict_cpm):
     # variable must be a list of Variables
     f_variables = [1, 2]
