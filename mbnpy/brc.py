@@ -17,7 +17,7 @@ import json
 from mbnpy import variable, branch
 
 
-def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=100, surv_first=True, active_decomp=10, final_decomp=True, display_freq=10):
+def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=100, surv_first=True, active_decomp=10, final_decomp=True, display_freq=10, autosave=50):
 
     """
     Run the BRC algorithm to find (1) non-dominated rules and
@@ -53,6 +53,9 @@ def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_b
                 (only when active_decomp = False)
         **Display options**
             display_freq (int): frequency of displaying the current progress
+        **Autosave options**
+            autosave (int): frequency of saving the current progress
+                (brs, rules, sys_res, monitor) to files
 
     Returns:
         brs (list): branches
@@ -121,6 +124,9 @@ def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_b
             if ctrl['no_sf'] % display_freq == 0:
                 print(f"[System function runs {ctrl['no_sf']}]..")
                 display_msg(monitor)
+
+            if autosave and ctrl['no_sf'] % autosave == 0:
+                save_brc_data(rules, brs, sys_res, monitor, fname_suffix="autosave")
 
         if ctrl['no_sf'] == max_sf:
             monitor['out_flag'] = 'max_sf'
