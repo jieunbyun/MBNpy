@@ -329,7 +329,7 @@ def load_brs_from_parquet(file_path):
     return brs_list
 
 
-def get_cmat(branches, comp_varis):
+def get_cmat(branches, comp_varis, sys_st = {'f': 0, 's': 1, 'u': 2}):
     """
     Parameters
     ----------
@@ -354,11 +354,11 @@ def get_cmat(branches, comp_varis):
         c[1:] = c_comp
 
         if br.down_state == 's': # survival branch
-            c[0] = 1
+            c[0] = sys_st['s']
         elif br.up_state == 'f': # failure branch
-            c[0] = 0
+            c[0] = sys_st['f']
         else: # unknown branch
-            c[0] = 2
+            c[0] = sys_st['u']
 
         C = np.vstack((C, c))
         C = C.astype(int)
