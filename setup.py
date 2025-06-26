@@ -6,7 +6,7 @@ def read_requirements():
 
 setup(
     name="mbnpy",
-    version="0.1.3",  # Update version when making changes
+    version="0.1.5",  # Update version when making changes
     packages=find_packages(),
     author="The DUCO team",
     author_email="ji-eun.byun@glasgow.ac.uk",
@@ -14,7 +14,6 @@ setup(
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
     url="https://github.com/jieunbyun/MBNpy",  # GitHub URL
-    packages=['mbnpy'],
     install_requires=read_requirements(),
     python_requires=">=3.12",  # Enforces Python 3.12 or later
     classifiers=[
