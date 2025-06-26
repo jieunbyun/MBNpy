@@ -580,9 +580,6 @@ def eval_rules_prob(rules_list, s_or_f, probs):
     return probs_list
 
 def save_brc_data(rules, brs, sys_res, monitor, output_folder = "brc_data", fname_prefix="", fname_suffix = ""):
-    if not Path(output_folder).exists():
-        Path(output_folder).mkdir(parents=True, exist_ok=True)
-
     fpath_rule = f"./{output_folder}/{fname_prefix+'_' if fname_prefix else ''}rules{'_'+fname_suffix if fname_suffix else ''}.json"
     with open(fpath_rule, "w") as f:
         json.dump(rules, f, indent=4)
