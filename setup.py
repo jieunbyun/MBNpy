@@ -15,10 +15,10 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/jieunbyun/MBNpy",  # GitHub URL
     install_requires=read_requirements(),
-    python_requires=">=3.12",  # Enforces Python 3.12 or later
+    python_requires=">=3.8",  # Enforces Python 3.8 or later
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.12",
+        "Programming Language :: Python :: 3.8",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
