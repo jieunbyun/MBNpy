@@ -9,11 +9,24 @@ import copy
 from mbnpy import variable
 from scipy.stats import lognorm
 
-if 'gadi' in socket.gethostname():
+def in_colab():
+    try:
+        import google.colab
+        return True
+    except ImportError:
+        return False
+
+if 'gadi' in socket.gethostname() or in_colab():
+    # On Gadi or Colab, use Agg or default backend for headless
     matplotlib.use('Agg')
 else:
-    matplotlib.use("TKAgg")
-    import matplotlib.pyplot as plt
+    try:
+        matplotlib.use("TKAgg")
+    except ImportError:
+        # If TKAgg fails, fallback safely
+        matplotlib.use('Agg')
+
+import matplotlib.pyplot as plt
 
 
 system_meta = {'system_meta': {
