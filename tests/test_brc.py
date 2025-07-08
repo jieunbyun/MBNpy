@@ -480,11 +480,11 @@ def test_inference1(setup_inference):
     # case 1: no observatio
     cpms, varis, var_elim_order, arcs = setup_inference
 
-    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
-    np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
-    np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
+    Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order)
+    np.testing.assert_almost_equal(Msys.p[Msys.C == 1], np.array([0.8982]))
+    np.testing.assert_almost_equal(Msys.p[Msys.C == 0], np.array([0.1018]))
 
-    pf_sys = Msys.p[0]
+    pf_sys = Msys.p[Msys.C==0]
     assert pf_sys == pytest.approx(0.1018, rel=1.0e-3)
 
 
@@ -492,7 +492,6 @@ def test_inference2(setup_inference):
 
     # case 2: observation
     cpms, varis, var_elim_order, arcs = setup_inference
-    pdb.set_trace()
     cnd_vars = [f'o{i}' for i in range(1, len(arcs) + 1)]
     cnd_states = [1, 1, 0, 1, 0, 1]  # observing e3, e5 failure
 
@@ -791,8 +790,8 @@ def test_proposed_branch_and_bound_using_probs(main_sys):
 
     var_elim_order = [varis[k] for k in arcs.keys()]
     Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
-    np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
-    np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
+    np.testing.assert_almost_equal(Msys.p[Msys.C == 1], np.array([0.8982]))
+    np.testing.assert_almost_equal(Msys.p[Msys.C == 0], np.array([0.1018]))
 
 
 def test_get_csys(setup_brs):
@@ -878,8 +877,8 @@ def test_get_csys3(main_sys):
 
     var_elim_order = [varis[k] for k in arcs.keys()]
     Msys = inference.variable_elim([cpms[v] for v in varis.keys()], var_elim_order )
-    np.testing.assert_array_almost_equal(Msys.C, np.array([[0, 1]]).T)
-    np.testing.assert_array_almost_equal(Msys.p, np.array([[0.1018, 0.8982]]).T)
+    np.testing.assert_almost_equal(Msys.p[Msys.C == 1], np.array([0.8982]))
+    np.testing.assert_almost_equal(Msys.p[Msys.C == 0], np.array([0.1018]))
 
 
 def test_get_connectivity_given_comps4():

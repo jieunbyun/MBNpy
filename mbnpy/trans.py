@@ -5,6 +5,7 @@ import networkx as nx
 import socket
 import matplotlib
 import copy
+import pdb
 
 from mbnpy import variable
 from scipy.stats import lognorm
@@ -139,10 +140,16 @@ def get_connectivity_given_comps(comps_st, G, od_pair):
 
     H = update_G_given_comps_st(G, comps_st)
 
+    if isinstance(od_pair, dict):
+        source = od_pair['origin']
+        target = od_pair['destination']
+    else:
+        source, target = od_pair
+
     # shortest path in edges
     try:
         # shortest path in nodes
-        s_path = nx.shortest_path(H, source = od_pair[0], target = od_pair[1])
+        s_path = nx.shortest_path(H, source=source, target=target)
 
     except (nx.NodeNotFound, nx.exception.NetworkXNoPath):
         s_path, s_path_edge = [], []
