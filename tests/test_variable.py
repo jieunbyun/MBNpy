@@ -22,6 +22,17 @@ def test_init1():
     np.testing.assert_array_equal(a.B, [{0}, {1}, {0, 1}])
 
 
+def test_print():
+    name = 'A'
+    value = ['failure', 'survival']
+
+    var = {'name': name, 'values': value}
+    a = variable.Variable(**var)
+
+    print(type(a))
+    print(a)
+
+
 def test_init2():
     name = 'A'
     a = variable.Variable(name)
