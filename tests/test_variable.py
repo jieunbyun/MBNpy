@@ -66,7 +66,7 @@ def test_str():
     var = {'name': name, 'values': value}
     a = variable.Variable(**var)
 
-    assert repr(a) == f"<Variable representing A[failure, survival] at {hex(id(a))}>"
+    assert repr(a) == f"<Variable representing A['failure', 'survival'] at {hex(id(a))}>"
 
     header = ['index', 'B']
     b = [(i, f'{x}') for i, x in enumerate(a._B)]
@@ -90,7 +90,7 @@ def test_str2():
     # assign B
     a._B = a.gen_B()
 
-    assert repr(a) == f"<Variable representing A[0, 1, 2, 3, 4] at {hex(id(a))}>"
+    assert repr(a) == f"<Variable representing A['0', '1', '2', '3', '4'] at {hex(id(a))}>"
     assert str(a)
     print(a)
 

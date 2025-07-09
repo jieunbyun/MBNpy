@@ -83,13 +83,23 @@ def sf_min_path(comps_st, G, od_pair, varis=None, thres=None):
     thres:
     """
 
-    if thres:
+    if isinstance(od_pair, dict):
+        source = od_pair['origin']
+        target = od_pair['destination']
+    else:
+        source, target = od_pair
 
+
+    if thres:
         if isinstance(od_pair, (list, tuple)):
             d_time, path_n, path_e = get_time_and_path_given_comps(comps_st, G, od_pair, varis)
 
-        elif isinstance(od_pair, dict): # multiple destinations, e.g. {origin: n1, dests: [n2, n3, n4]}
-            d_time, path_n, path_e = get_time_and_path_multi_dest(comps_st, G, od_pair['origin'], od_pair['dests'], varis)
+        elif isinstance(od_pair, dict):
+            if isinstance(target, list) and len(target) > 1: # multiple destinations, e.g. {origin: n1, dests: [n2, n3, n4]}
+                d_time, path_n, path_e = get_time_and_path_multi_dest(comps_st, G, source, target, varis)
+            else:
+
+                d_time, path_n, path_e = get_time_and_path_given_comps(comps_st, G, od_pair, varis)
 
         if d_time > thres:
             sys_st = 'f'
@@ -237,8 +247,14 @@ def get_time_and_path_given_comps(comps_st, G, od_pair, varis):
 
     H = update_G_given_comps_st(G, comps_st, varis)
 
-    path = nx.shortest_path(H, source=od_pair[0], target=od_pair[1], weight='weight')
-    d_time = nx.shortest_path_length(H, source=od_pair[0], target=od_pair[1], weight='weight')
+    if isinstance(od_pair, dict):
+        source = od_pair['origin']
+        target = od_pair['destination']
+    else:
+        source, target = od_pair
+
+    path = nx.shortest_path(H, source=source, target=target, weight='weight')
+    d_time = nx.shortest_path_length(H, source=source, target=target, weight='weight')
     path_e = get_edge_from_nodes(H, path)
 
     return d_time, path, path_e
