@@ -90,14 +90,18 @@ class Variable:
             return False
 
     def __repr__(self):
+
+        values = [str(x) for x in self._values]
         return (
-                f"<Variable representing {self._name}[{', '.join(self._values)}] at {hex(id(self))}>"
+                f"<Variable representing {self._name}{values} at {hex(id(self))}>"
            )
 
     def __str__(self):
+
+        values = [str(x) for x in self._values]
         if self._B is None:
             return (
-                f"<Variable representing {self._name}[{', '.join(self._values)}] at {hex(id(self))}>\n"
+                f"<Variable representing {self._name}{values} at {hex(id(self))}>\n"
                 f"B_flag={repr(self._B_flag)})"
             )
         else:
@@ -107,7 +111,7 @@ class Variable:
             var_str = self._truncate_strtable(var_str)
 
             return (
-                f"<Variable representing {self._name}[{', '.join(self._values)}] at {hex(id(self))}>\n"
+                f"<Variable representing {self._name}{values} at {hex(id(self))}>\n"
                 f"{var_str}"
             )
 

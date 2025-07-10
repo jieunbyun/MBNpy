@@ -22,6 +22,17 @@ def test_init1():
     np.testing.assert_array_equal(a.B, [{0}, {1}, {0, 1}])
 
 
+def test_print():
+    name = 'A'
+    value = ['failure', 'survival']
+
+    var = {'name': name, 'values': value}
+    a = variable.Variable(**var)
+
+    print(type(a))
+    print(a)
+
+
 def test_init2():
     name = 'A'
     a = variable.Variable(name)
@@ -55,7 +66,7 @@ def test_str():
     var = {'name': name, 'values': value}
     a = variable.Variable(**var)
 
-    assert repr(a) == f"<Variable representing A[failure, survival] at {hex(id(a))}>"
+    assert repr(a) == f"<Variable representing A['failure', 'survival'] at {hex(id(a))}>"
 
     header = ['index', 'B']
     b = [(i, f'{x}') for i, x in enumerate(a._B)]
@@ -79,7 +90,7 @@ def test_str2():
     # assign B
     a._B = a.gen_B()
 
-    assert repr(a) == f"<Variable representing A[0, 1, 2, 3, 4] at {hex(id(a))}>"
+    assert repr(a) == f"<Variable representing A['0', '1', '2', '3', '4'] at {hex(id(a))}>"
     assert str(a)
     print(a)
 

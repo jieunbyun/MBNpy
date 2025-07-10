@@ -378,7 +378,7 @@ def run_MCS(file_cfg, eq_name, node):
     comps_st_itc = {k: 1 for k in arcs.keys()}
 
     d_time_itc, _, _ = trans.get_time_and_path_multi_dest(comps_st_itc, cfg.infra['G'], node, dests, varis)
-    sys_fun = trans.sys_fun_wrap(cfg.infra['G'], {'origin': node, 'dests': dests}, varis, thres * d_time_itc)
+    sys_fun = trans.sys_fun_wrap(cfg.infra['G'], {'origin': node, 'destination': dests}, varis, thres * d_time_itc)
 
     pf, _, _, _ = cal_edge_dist_output(cfg, eq_name)
     probs = {k: {0:v, 1:1-v} for k,v in pf.items()}
@@ -407,7 +407,7 @@ def process_node(cfg, node, comps_st_itc, st_br_to_cs, arcs, varis, probs, cpms)
     if node not in dests:
 
         d_time_itc, _, _ = trans.get_time_and_path_multi_dest(comps_st_itc, cfg.infra['G'], node, dests, varis)
-        sys_fun = trans.sys_fun_wrap(cfg.infra['G'], {'origin': node, 'dests': dests}, varis, thres * d_time_itc)
+        sys_fun = trans.sys_fun_wrap(cfg.infra['G'], {'origin': node, 'destination': dests}, varis, thres * d_time_itc)
 
         """brs, rules, sys_res1, monitor1 = brc.run( probs, sys_fun, max_sf=0.01*cfg.max_sys_fun, max_nb=0.01*cfg.max_branches, pf_bnd_wr=cfg.sys_bnd_wr, surv_first=False)
         brs, rules, sys_res2, monitor2 = brc.run( probs, sys_fun, max_sf=cfg.max_sys_fun, max_nb=cfg.max_branches, pf_bnd_wr=cfg.sys_bnd_wr, surv_first=True, rules=rules)

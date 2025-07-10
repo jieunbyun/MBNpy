@@ -993,7 +993,7 @@ def test_sys_fun_wrap1(setup_multi_dest):
                   'e5': 1,
                   'e6': 0}
 
-    od_pair = {'origin': origin, 'dests': dests}
+    od_pair = {'origin': origin, 'destination': dests}
     sys_fun = trans.sys_fun_wrap(G, od_pair, varis=varis, thres=0.5)
     d_time1, sys_st1, min_comps_st1 = sys_fun(arcs_state)
 

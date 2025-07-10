@@ -9,11 +9,26 @@ from demos.road import batch as road
 from demos.SF import batch as sf
 
 
-def test_batch():
+def test_batch_rbd():
 
-    #rbd.main()
+    rbd.main()
+
+
+def test_batch_pf():
     pf_map.debug()
-    #routine.main()
-    #road.main()
-    #sf.main(max_sf=10)
-    #power_house.batch()
+
+
+def test_batch_routine():
+    routine.main()
+
+
+def test_batch_road():
+    road.main()
+
+
+def test_batch_sf():
+    sf.main(max_sf=10)
+
+
+def test_batch_power():
+    power_house.batch()

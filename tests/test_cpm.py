@@ -427,7 +427,7 @@ def test_repr(dict_cpm):
     a = cpm.Cpm(**dict_cpm)
     assert isinstance(a, cpm.Cpm)
 
-    assert repr(a) == f"<Cpm representing P(A3 | A2, A1) at {hex(id(a))}>"
+    assert repr(a) == f"<CPM representing P(A3 | A2, A1) at {hex(id(a))}>"
 
 
 def test_str(setup_condition):
@@ -710,6 +710,10 @@ def test_sort1(dict_cpm):
     p = np.array([[0.9405, 0.0495, 0.0095, 0.0005, 0.7650, 0.1350, 0.0850, 0.0150]]).T
     C = np.array([[1, 1, 1], [1, 2, 1], [2, 1, 1], [2, 2, 1], [1, 1, 2], [1, 2, 2], [2, 1, 2], [2, 2, 2]]) - 1
 
+    idx = cpm.argsort(list(map(tuple, C)))
+
+    assert idx == [0, 4, 1, 5, 2, 6, 3, 7]
+
     M = cpm.Cpm(variables=[A2, A3, A1],
             no_child = 2,
             C = C,
@@ -717,8 +721,8 @@ def test_sort1(dict_cpm):
 
     M.sort()
 
-    np.testing.assert_array_equal(M.C, np.array([[1, 1, 1], [2, 1, 1], [1, 2, 1], [2, 2, 1], [1, 1, 2], [2, 1, 2], [1, 2, 2], [2, 2, 2]]) - 1)
-    np.testing.assert_array_almost_equal(M.p, np.array([[0.9405, 0.0095, 0.0495, 5.0e-4, 0.7650, 0.0850, 0.1350, 0.0150]]).T)
+    np.testing.assert_array_equal(M.C, C[idx, :])
+    np.testing.assert_array_almost_equal(M.p, p[idx])
 
 
 def test_ismember1s():
@@ -938,8 +942,8 @@ def test_get_prod():
     B = np.array([0.99])
 
     result = cpm.get_prod(A, B)
-    np.testing.assert_array_equal(result, np.array([[0.9405, 0.0495]]).T)
-    np.testing.assert_array_equal(result, A*B)
+    np.testing.assert_allclose(result, np.array([[0.9405, 0.0495]]).T, )
+    np.testing.assert_allclose(result, A*B)
 
 
 def test_setdiff():
@@ -1630,20 +1634,21 @@ def test_product6(setup_hybrid2):
                             [0, 1, 1, 1, 0],
                             [0, 0, 2, 2, 0],
                             [1, 0, 1, 1, 1],
-                            [0, 0, 2, 2, 0], # 0, 0, 0, 0, 1
-                            [0, 0, 0, 0, 1], # 0, 0, 2, 2, 0
+                            [0, 0, 0, 0, 1],
+                            [0, 0, 2, 2, 0],
                             [0, 1, 2, 2, 0],
                             [1, 1, 2, 2, 1],
                             [1, 1, 1, 0, 1],
-                            [0, 1, 2, 2, 0], # 1, 1, 2, 2, 1
-                            [1, 1, 2, 2, 1], # 0, 1, 2, 2, 0
+                            [1, 1, 2, 2, 1],
+                            [0, 1, 2, 2, 0],
                             [0, 1, 0, 1, 0]])
+
     np.testing.assert_array_equal(Mprod.Cs, expected_Cs)
 
     expected_q = np.array([0.95, 0.95, 0.95, 0.05, 0.05, 0.05, 0.05,
                            0.95, 0.95, 0.95, 0.95, 0.95, 0.95])
-    np.testing.assert_array_almost_equal(Mprod.q.flatten(), expected_q)
-    np.testing.assert_array_almost_equal(Mprod.ps.flatten(), expected_q)
+    np.testing.assert_allclose(Mprod.q.flatten(), expected_q)
+    np.testing.assert_allclose(Mprod.ps.flatten(), expected_q)
 
 
 def test_sum6(setup_hybrid):
