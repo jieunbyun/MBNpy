@@ -524,15 +524,15 @@ def create_scenario_json_for_tranportation_network(damage_states, arcs, type_by_
     return _dic
 
 
-def plot_graph(G, filename=None):
+def plot_graph(G, filename=None, **kwargs):
 
     # plot graph
     pos = nx.get_node_attributes(G, 'pos')
     edge_labels = nx.get_edge_attributes(G, 'label')
     fig = plt.figure()
     ax = fig.add_subplot()
-    nx.draw(G, pos, with_labels=True, ax=ax)
-    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax)
+    nx.draw(G, pos, with_labels=True, ax=ax, **kwargs)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels, ax=ax, **kwargs)
 
     if filename:
        fig.savefig(filename, dpi=200)

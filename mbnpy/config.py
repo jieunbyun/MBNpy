@@ -191,6 +191,7 @@ def networkx_to_graphviz(g):
         h = gv.Digraph()
     else:
         h = gv.Graph()
+
     for u, d in g.nodes(data=True):
         h.node(str(u), label=d['label'])
     for u, v, d in g.edges(data=True):
