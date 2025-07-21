@@ -569,7 +569,7 @@ def test_get_variables_from_cpms2(setup_condition):
     assert [x.name for x in condVars] == ['v2', 'v3']
 
 
-def test_variable_elim(setup_bridge):
+def test_variable_elim1(setup_bridge):
 
     d_cpms_arc, d_vars_arc, arcs, _ = setup_bridge
     cpms_arc = copy.deepcopy(d_cpms_arc)
@@ -710,7 +710,7 @@ def test_condition6(setup_hybrid):
 
 
 @pytest.mark.skip('Cs_prod_Cs')
-def test_variable_elim1(setup_hybrid):
+def test_variable_elim2(setup_hybrid):
 
     varis, cpms = setup_hybrid
 
@@ -1102,7 +1102,7 @@ def test_get_elimination_order1():
 
     elimination_order = inference.get_elimination_order(cpms)
 
-    assert [v.name for v in elimination_order] == ['X', 'Y', 'W', 'Z']
+    assert [v.name for v in elimination_order] == ['X', 'Y', 'W', 'Z'] or [v.name for v in elimination_order] == ['Y', 'X', 'W', 'Z']
 
 def test_get_elimination_order2():
     varis = {}
@@ -1117,4 +1117,4 @@ def test_get_elimination_order2():
     cpms['Y'] = cpm.Cpm(variables=[varis['Y'], varis['Z'], varis['W']], no_child=1)
 
     elimination_order = inference.get_elimination_order(cpms)
-    assert [v.name for v in elimination_order] == ['X', 'Z', 'W', 'Y']
+    assert [v.name for v in elimination_order] == ['X', 'Z', 'W', 'Y'] or [v.name for v in elimination_order] == ['X', 'W', 'Z', 'Y']

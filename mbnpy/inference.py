@@ -93,7 +93,7 @@ def get_elimination_order(cpms):
         cpms = list(cpms.values())
     elif not isinstance(cpms, list):
         raise TypeError("cpms should be a dict or a list of Cpm objects")
-
+ 
     for M1 in cpms:
         childs = M1.variables[:M1.no_child]
         parents = M1.variables[M1.no_child:]
@@ -125,7 +125,7 @@ def get_elimination_order(cpms):
         next_node = min(selectable, key=lambda n: len(parent_dict[n]))
         selected.append(next_node)
         remaining.remove(next_node)
-
+    
     return selected
 
 
