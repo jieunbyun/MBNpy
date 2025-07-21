@@ -1009,3 +1009,116 @@ def max_flow(comps_st, target_flow, od_pair, edges, varis): # maximum flow analy
 
     return f_val, sys_st, min_comps_st
 
+def cal_first_order_sobol(cpms, input_vars, target_var, elim_order=None):
+    """
+    Calculate the first-order Sobol indices for a given target variable
+    based on the provided conditional probability models (CPMs) and input variables.
+
+    Args:
+        cpms (dict or list): Conditional probability models.
+        input_vars (list or dict): List or dictionary of input variable names or Variable objects.
+        target_var (str or Variable object): The target variable for which to calculate the Sobol index.
+        elim_order (list, optional): The elimination order of variables (Variable object or str). If None, it will be determined from the CPMs.
+
+    Returns:
+        sobol_indices (list): The first-order Sobol indices (float) of input variables for the target variable.
+    """
+
+    # Normalize CPMs to list
+    if isinstance(cpms, dict):
+        cpms = list(cpms.values())
+    elif not isinstance(cpms, list):
+        raise TypeError("cpms should be a dict or a list of Cpm objects")
+
+    # Normalize input_vars to list
+    if isinstance(input_vars, dict):
+        input_vars = list(input_vars.values())
+    elif not isinstance(input_vars, list):
+        raise TypeError("input_vars should be a dict or a list of Variable objects")
+
+    # Collect all nodes from the CPMs
+    all_nodes = set()
+    for c in cpms:
+        all_nodes.update(c.variables)
+
+    # Resolve input variable references
+    resolved_inputs = []
+    for v in input_vars:
+        if isinstance(v, str):
+            candidates = [node for node in all_nodes if node.name == v]
+            if not candidates:
+                raise ValueError(f"Variable '{v}' not found in the CPMs.")
+            if len(candidates) > 1:
+                warnings.warn(f"Multiple variables named '{v}' found. Using the first one.")
+            resolved_inputs.append(candidates[0])
+        elif hasattr(v, 'name'):
+            resolved_inputs.append(v)
+        else:
+            raise TypeError("input_vars should be Variable objects or variable name strings")
+    input_vars = resolved_inputs
+
+    # Resolve target variable
+    if isinstance(target_var, str):
+        matches = [node for node in all_nodes if node.name == target_var]
+        if not matches:
+            raise ValueError(f"Target variable '{target_var}' not found.")
+        target_var = matches[0]
+    elif not hasattr(target_var, 'name'):
+        raise TypeError("target_var should be a Variable object or a string")
+
+    # Resolve elimination order
+    if elim_order is None:
+        elim_order = get_elimination_order(cpms)
+
+    resolved_elim = []
+    for v in elim_order:
+        if isinstance(v, str):
+            matches = [node for node in all_nodes if node.name == v]
+            if not matches:
+                raise ValueError(f"Variable '{v}' not found in the CPMs.")
+            if len(matches) > 1:
+                warnings.warn(f"Multiple variables named '{v}' found. Using the first one.")
+            resolved_elim.append(matches[0])
+        elif hasattr(v, 'name'):
+            resolved_elim.append(v)
+        else:
+            raise TypeError("elim_order should contain Variable objects or strings")
+    elim_order = resolved_elim
+
+    # Exclude target from elimination
+    elim_order = [v for v in elim_order if v != target_var]
+
+    # Compute total variance of target variable
+    M_target = variable_elim(cpms, elim_order)
+    var_target = M_target.get_variances([target_var])[0]
+
+    sobol_indices = []
+    for v in input_vars:
+        prs_v, exp_v = [], []
+        for st_ in range(len(v.values)):
+            cpms_ = copy.deepcopy(cpms)
+            cpms_ = condition(cpms_, [v], [st_])
+
+            # Keep only relevant CPMs (those involving target or vars in elim_order_)
+            cpms_ = [c for c in cpms_ if target_var in c.variables or any(var in c.variables for var in elim_order)]
+
+            M_v = variable_elim(cpms_, elim_order)
+
+            pr_st_ = np.sum(M_v.p)
+            M_v.p = M_v.p / pr_st_
+
+            exp_st_ = M_v.get_means([target_var])[0]
+
+            prs_v.append(float(pr_st_))
+            exp_v.append(float(exp_st_))
+
+        # Compute Var_X(E[Y | X])
+        E = np.array(exp_v)
+        P = np.array(prs_v)
+        mean = np.sum(E * P)
+        mean_sq = np.sum((E**2) * P)
+        var_target_v = mean_sq - mean**2
+
+        sobol_indices.append(float(var_target_v / var_target))
+
+    return sobol_indices

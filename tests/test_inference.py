@@ -1138,5 +1138,22 @@ def test_get_inf_vars1(setup_XYZW1):
     inf_vars3 = inference.get_inf_vars(cpms, ['Z', 'W'])
     assert set(inf_vars3) == {'X', 'Y', 'Z', 'W'}
 
+def test_cal_first_order_sobol():
+    varis = {}
+    varis['x'] = variable.Variable(name="x", values=[0, 1])
+    varis['y'] = variable.Variable(name="y", values=['a', 'b'])
+    varis['z'] = variable.Variable(name="z", values=['a', 'b', 'c'])
 
+    cpms = {}
+    cpms['x'] = cpm.Cpm(variables=[varis['x']], no_child=1, C=[[0],[1]], p=[0.5, 0.5])
+    cpms['y'] = cpm.Cpm(variables=[varis['y']], no_child=1, C=[[0],[1]], p=[0.1, 0.9])
+    cpms['z'] = cpm.Cpm(variables=[varis['z'], varis['x'], varis['y']], no_child=1, C=[[0, 0, 0],[1, 0, 0],[2, 0, 0],
+                                                                                    [0, 1, 0],[1, 1, 0],[2, 1, 0],
+                                                                                    [0, 0, 1],[1, 0, 1],[2, 0, 1],
+                                                                                    [0, 1, 1],[1, 1, 1],[2, 1, 1]],
+                                                                                    p = [0.1, 0.2, 0.7, 0.2, 0.3, 0.5, 0.3, 0.4, 0.3, 0.7, 0.2, 0.1])
 
+    sobol_indices = inference.cal_first_order_sobol(cpms, [varis['x'], varis['y']], varis['z'])
+
+    assert round(sobol_indices[0], 3) == 0.124
+    assert round(sobol_indices[1], 4) == 0.0774
