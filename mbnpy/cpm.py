@@ -713,6 +713,53 @@ class Cpm(object):
             means.append(float(mean_i))
 
         return means
+    
+    def get_variances(self, names):
+        """
+        Get variances of variables in names
+        INPUT:
+            names: a list of names (str or Variable objects)
+        OUTPUT:
+            variances: a list of variances (float, same order as names)
+        """
+        assert isinstance(names, list), 'names should be a list'
+        assert len(set(names)) == len(names), f'names has duplicates: {names}'
+
+        # Normalize to string names
+        names = [n.name if isinstance(n, Variable) else n for n in names]
+
+        # Check types again
+        for n in names:
+            if not isinstance(n, str):
+                raise TypeError(f'Variable names should be str or Variable objects, not {type(n)}')
+
+        idx = [self.get_names().index(x) for x in names]
+
+        variances = []
+        for i in idx:
+            var_vals = self.variables[i].values
+
+            if all(isinstance(v, (int, float)) for v in var_vals):
+                # Continuous/numeric variable
+                val_i = np.array([var_vals[self.C[j, i]] for j in range(self.C.shape[0])])
+                probs = self.p[:, 0]
+
+                mean_i = np.nansum(val_i * probs)
+                mean_sq_i = np.nansum(val_i**2 * probs)
+                var_i = mean_sq_i - mean_i**2
+            else:
+                # Categorical variable (assume numeric encoding)
+                x = self.C[:, i]
+                probs = self.p[:, 0]
+
+                mean_i = np.sum(x * probs)
+                mean_sq_i = np.sum((x**2) * probs)
+                var_i = mean_sq_i - mean_i**2
+
+            variances.append(float(var_i))
+
+        return variances
+
 
     def iscompatible(self, M, composite_state=True):
         """
