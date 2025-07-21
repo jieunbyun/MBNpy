@@ -957,7 +957,7 @@ class Cpm(object):
 
 
     def sort(self):
-
+ 
         idx = argsort(list(map(tuple, self.C)))
         self.C = self.C[idx, :]
 

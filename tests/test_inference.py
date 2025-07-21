@@ -1086,3 +1086,35 @@ def test_max_flow3(max_flow_net_5_edge):
     assert f_val == 0
     assert sys_st == 'f'
     assert min_comps_st == None
+
+def test_get_elimination_order1():
+    varis = {}
+    varis['X'] = variable.Variable(name = 'X', values = [0, 1])
+    varis['Y'] = variable.Variable(name = 'Y', values = [0, 1])
+    varis['Z'] = variable.Variable(name = 'Z', values = [0, 1])
+    varis['W'] = variable.Variable(name = 'W', values = [0, 1])
+
+    cpms = {}
+    cpms['X'] = cpm.Cpm(variables=[varis['X']], no_child=1)
+    cpms['Y'] = cpm.Cpm(variables=[varis['Y']], no_child=1)
+    cpms['Z'] = cpm.Cpm(variables=[varis['Z'], varis['X'], varis['Y']], no_child=1)
+    cpms['W'] = cpm.Cpm(variables=[varis['W'], varis['Y']], no_child=1)
+
+    elimination_order = inference.get_elimination_order(cpms)
+
+    assert [v.name for v in elimination_order] == ['X', 'Y', 'W', 'Z']
+
+def test_get_elimination_order2():
+    varis = {}
+    varis['X'] = variable.Variable(name = 'X', values = [0, 1])
+    varis['Y'] = variable.Variable(name = 'Y', values = [0, 1])
+    varis['Z'] = variable.Variable(name = 'Z', values = [0, 1])
+    varis['W'] = variable.Variable(name = 'W', values = [0, 1])
+
+    cpms = {}
+    cpms['X'] = cpm.Cpm(variables=[varis['X']], no_child=1)
+    cpms['ZW'] = cpm.Cpm(variables=[varis['Z'], varis['W'], varis['X']], no_child=2)
+    cpms['Y'] = cpm.Cpm(variables=[varis['Y'], varis['Z'], varis['W']], no_child=1)
+
+    elimination_order = inference.get_elimination_order(cpms)
+    assert [v.name for v in elimination_order] == ['X', 'Z', 'W', 'Y']

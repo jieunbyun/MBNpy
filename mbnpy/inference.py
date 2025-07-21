@@ -7,6 +7,7 @@ import random
 from scipy.stats import norm, beta
 import networkx as nx
 from networkx.algorithms.flow import shortest_augmenting_path
+from collections import defaultdict
 
 #from mbnpy.utils import all_equal
 from mbnpy import variable
@@ -75,6 +76,57 @@ def get_var_idx(varis, names):
         idx.append(ind[0])
 
     return idx
+
+def get_elimination_order(cpms):
+    """
+    cpms: either dict or list of Cpm objects.
+
+    Returns: a list of Variable objects in the order they should be eliminated
+        The ordering prioritieses (i) ancestors first, (ii) fewest parents first.
+    """
+
+    # Step 1: Extract child -> parent relations
+    parent_dict = defaultdict(set)  # node -> set of parent nodes
+    all_nodes = set()
+
+    if isinstance(cpms, dict):
+        cpms = list(cpms.values())
+    elif not isinstance(cpms, list):
+        raise TypeError("cpms should be a dict or a list of Cpm objects")
+
+    for M1 in cpms:
+        childs = M1.variables[:M1.no_child]
+        parents = M1.variables[M1.no_child:]
+        for c in childs: # in case there are multiple child nodes
+            parent_dict[c].update(parents)
+        all_nodes.update(M1.variables)
+
+    # Step 2: Build reverse mapping (which nodes a node is parent of)
+    children_dict = defaultdict(set)
+    for child, parents in parent_dict.items():
+        for p in parents:
+            children_dict[p].add(child)
+
+    # Step 3: Variable elimination ordering
+    selected = []
+    remaining = set(all_nodes)
+
+    while remaining:
+        # Find selectable nodes: all whose parents are already selected
+        selectable = [
+            node for node in remaining
+            if parent_dict[node].issubset(set(selected))
+        ]
+
+        if not selectable:
+            raise ValueError("Cycle detected or invalid parent-child specification")
+
+        # Among selectable, choose the one with fewest parents
+        next_node = min(selectable, key=lambda n: len(parent_dict[n]))
+        selected.append(next_node)
+        remaining.remove(next_node)
+
+    return selected
 
 
 def get_prod_idx(cpms, varis):
