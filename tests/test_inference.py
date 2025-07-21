@@ -1087,7 +1087,8 @@ def test_max_flow3(max_flow_net_5_edge):
     assert sys_st == 'f'
     assert min_comps_st == None
 
-def test_get_elimination_order1():
+@pytest.fixture()
+def setup_XYZW1():
     varis = {}
     varis['X'] = variable.Variable(name = 'X', values = [0, 1])
     varis['Y'] = variable.Variable(name = 'Y', values = [0, 1])
@@ -1099,6 +1100,12 @@ def test_get_elimination_order1():
     cpms['Y'] = cpm.Cpm(variables=[varis['Y']], no_child=1)
     cpms['Z'] = cpm.Cpm(variables=[varis['Z'], varis['X'], varis['Y']], no_child=1)
     cpms['W'] = cpm.Cpm(variables=[varis['W'], varis['Y']], no_child=1)
+
+    return varis, cpms
+
+
+def test_get_elimination_order1(setup_XYZW1):
+    varis, cpms = setup_XYZW1()
 
     elimination_order = inference.get_elimination_order(cpms)
 
@@ -1118,3 +1125,18 @@ def test_get_elimination_order2():
 
     elimination_order = inference.get_elimination_order(cpms)
     assert [v.name for v in elimination_order] == ['X', 'Z', 'W', 'Y'] or [v.name for v in elimination_order] == ['X', 'W', 'Z', 'Y']
+
+def test_get_inf_vars1(setup_XYZW1):
+    varis, cpms = setup_XYZW1
+
+    inf_vars = inference.get_inf_vars(cpms, 'Z')
+    assert set(inf_vars) == {'X', 'Y', 'Z'}
+
+    inf_vars2 = inference.get_inf_vars(cpms, ['W'])
+    assert set(inf_vars2) == {'Y', 'W'}
+
+    inf_vars3 = inference.get_inf_vars(cpms, ['Z', 'W'])
+    assert set(inf_vars3) == {'X', 'Y', 'Z', 'W'}
+
+
+

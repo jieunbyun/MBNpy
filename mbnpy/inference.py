@@ -716,9 +716,9 @@ def get_inf_vars(cpms, varis, ve_ord=None):
 
     """
     INPUT:
-    - cpms: a list of CPMs
-    - varis: a list of variable names, whose marginal distributions are of interest
-    - ve_ord (optional): a list of variable names, representing a VE order. The output list of vars_inf is sorted accordingly.
+    - cpms: dict or list of CPMs
+    - varis: a list of variable names or Variable objects, whose marginal distributions are of interest
+    - ve_ord (optional): a list of variable names or Variable objects, representing a VE order. The output list of vars_inf is sorted accordingly.
     OUPUT:
     - varis_inf: a list of variable names
     """
@@ -728,9 +728,18 @@ def get_inf_vars(cpms, varis, ve_ord=None):
             return alist.index(x)
         except ValueError:
             return len(alist)
+        
+    if isinstance(cpms, dict):
+        cpms = list(cpms.values())
+    elif not isinstance(cpms, list):
+        raise TypeError(f'cpms must be a list or dict: {type(cpms)}')
 
-    if isinstance(varis, str):
+    if not isinstance(varis, list):
         varis = [varis]
+    varis = [v.name if isinstance(v, variable.Variable) else v for v in varis]
+
+    if ve_ord is not None:
+        ve_ord = [v.name if isinstance(v, variable.Variable) else v for v in ve_ord]
 
     assert isinstance(varis, list), f'varis must be a list: {type(varis)}'
 
@@ -743,10 +752,11 @@ def get_inf_vars(cpms, varis, ve_ord=None):
         varis_cp.remove(v)
         varis_inf.append(v)
 
-        scope = [x.name for x in cpms[v].variables[cpms[v].no_child:]] # Scope of v1 (child nodes do not have to be multiplied again)
-        for p in scope:
-            if p not in varis_inf and p not in varis_cp:
-                varis_cp.append(p)
+        for M in cpms:
+            if v in [x.name for x in M.variables[:M.no_child]]:  # if v is a child variable of M
+                for v2 in [x.name for x in M.variables]:
+                    if v2 not in varis_inf and v2 not in varis_cp:
+                        varis_inf.append(v2)
 
     if ve_ord is not None:
         varis_inf.sort(key=(lambda x: get_ord_inf(x, ve_ord)))
