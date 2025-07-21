@@ -565,6 +565,17 @@ def test_get_means2(setup_mcs_product):
     assert means[0] == pytest.approx(1.0)
     assert means[1] == pytest.approx(5.0)
 
+def test_get_means3():
+    varis = {
+        'x1': variable.Variable('x1', ['fail', 'surv']),
+        'x2': variable.Variable('x2', [0, 2]),
+    }
+    M1 = cpm.Cpm(variables=[varis['x1'], varis['x2']], no_child=2, C=[[0, 0], [0, 1], [1, 0], [1,1]], p=[0.1, 0.2, 0.3, 0.4])
+    means = M1.get_means(['x1', 'x2'])
+    
+    assert round(means[0], 1) == 0.7
+    assert round(means[1], 1) == 1.2
+
 
 def test_iscompatibleCpm1(setup_iscompatible):
 

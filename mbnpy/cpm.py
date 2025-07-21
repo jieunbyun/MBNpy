@@ -679,19 +679,40 @@ class Cpm(object):
 
     def get_means(self, names):
         """
-        Get means of variables in names
+        Get means of variables in names 
         INPUT:
-        names: a list of names
+            names: a list of names (str or Variable objects)
         OUTPUT:
-        means: a list of means (the same order as names)
+            means: a list of means (the same order as names)
         """
         assert isinstance(names, list), 'names should be a list'
-        assert len(set(names))==len(names), f'names has duplicates: {names}'
+        assert len(set(names)) == len(names), f'names has duplicates: {names}'
+
+        # Normalize to string names
+        names = [n.name if isinstance(n, Variable) else n for n in names]
+
+        # Check types again
+        for n in names:
+            if not isinstance(n, str):
+                raise TypeError(f'Variable names should be str or Variable objects, not {type(n)}')
 
         idx = [self.get_names().index(x) for x in names]
+        
+        means = []
+        for i in idx:
+            var_vals = self.variables[i].values
+            # Check if values are numeric
+            if all(isinstance(v, (int, float)) for v in var_vals):
+                # Continuous/numeric variable
+                val_i = [var_vals[self.C[j, i]] for j in range(self.C.shape[0])]
+                mean_i = np.nansum(np.array(val_i) * self.p[:, 0])
+            else:
+                # Categorical variable (e.g., 0 or 1), assume encoded numerically
+                mean_i = (self.C[:, i] * self.p[:, 0]).sum()
+            
+            means.append(float(mean_i))
 
-        return [(self.C[:, i]*self.p[:, 0]).sum() for i in idx]
-
+        return means
 
     def iscompatible(self, M, composite_state=True):
         """
