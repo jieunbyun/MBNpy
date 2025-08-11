@@ -685,25 +685,34 @@ def prod_Msys_and_Mcomps(Msys, Mcomps_list):
                 p[j] = p[j] * p_st
 
     if Msys.Cs.size and all(M.Cs.size for M in Mcomps_list):
-        cpms_noC = {}
-        cpms_noC[Msys.variables[0]] = copy.deepcopy( Msys )
-        for v in Msys.variables[Msys.no_child:]:
-            if v not in cond_vars:
-                m_x = next((m for m in Mcomps_list if m.variables[0].name == v.name), None)
-                assert m_x is not None, f'There is no cpm found for component event {v}'
-                cpms_noC[v.name] = copy.deepcopy(m_x)
+        Cs = np.empty_like(Msys.Cs)
 
-        for k, v in cpms_noC.items():
-            v.C, v.p = np.empty((0,len(v.variables))), np.empty((0,1))
+        for i, v in enumerate(sys_vars_ch):
+            col_idx = Msys.get_col_ind([v.name])
+            Cs[:,i] = np.squeeze( Msys.Cs[:,col_idx] )
 
-        cpm_sys2 = cpm.product(cpms_noC)
-        Cs = cpm_sys2.Cs
-        q = cpm_sys2.q
-        ps = cpm_sys2.ps
-        sample_idx = cpm_sys2.sample_idx
+        no_ch = len(sys_vars_ch)
+        for i, v in enumerate(sys_vars_par):
+            col_idx = Msys.get_col_ind([v.name])
+            Cs[:,i+no_ch] = np.squeeze( Msys.Cs[:,col_idx] )
+        
+        if len(Msys.ps) > 0:
+            ps = Msys.ps.copy()
+        else:
+            ps = Msys.q.copy()
+        q = Msys.q.copy()
+        sample_idx = Msys.sample_idx.copy()
 
-        v_idx = cpm_sys2.get_col_ind([v.name for v in sys_vars_ch+sys_vars_par])
-        Cs = Cs[:, v_idx]
+        for i, idx in enumerate(mult_idxs):
+            m_i = Mcomps_list[idx]
+
+            c1 = [c[0] for c in m_i.Cs]
+            for j in range(len(ps)):
+                ps_j = m_i.ps[j]
+                q_j = m_i.q[j]
+
+                ps[j] = ps[j] * ps_j
+                q[j] = q[j] * q_j
 
     else:
         Cs = np.empty((0, len(Msys.variables)))

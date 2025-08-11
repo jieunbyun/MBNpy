@@ -1284,11 +1284,16 @@ def Cs_prod_Cs(Cs1, Cs2, vars1, vars2, q1, q2, ps1, ps2, sample_idx1, sample_idx
         elif tf2:
             Cs_col_map[1].append([i, idx2])
 
+    if len(ps1) == 0:
+        ps1 = q1.copy()
+    if len(ps2) == 0:
+        ps2 = q2.copy()
+
     for c1, q1, ps1, sidx1 in zip(Cs1, q1, ps1, sample_idx1):
         row_idx2 = np.where(sample_idx2 == sidx1)[0]
         for i2 in row_idx2:
             if all(Cs2[i2][com_vars_idx2] == c1[com_vars_idx1]):
-                cs_new = np.zeros((1, len(new_vars)))
+                cs_new = np.zeros((1, len(new_vars)), dtype=int)
                 for i, idx in Cs_col_map[0]:
                     cs_new[0, i] = c1[idx]
                 for i, idx in Cs_col_map[1]:

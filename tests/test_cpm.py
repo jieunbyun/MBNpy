@@ -239,7 +239,7 @@ def setup_mcs_product():
 
 
 @pytest.fixture
-def setup_prod_cms():
+def setup_prod_cpms():
     v1 = variable.Variable(name='v1', values=['Sunny', 'Cloudy', 'Rainy'])
     v2 = variable.Variable(name='v2', values=['Good', 'Bad'])
     v3 = variable.Variable(name='v3', values=['Below 0', 'Above 0'])
@@ -1480,9 +1480,9 @@ def test_get_prob_and_cov_cond2(setup_hybrid):
     assert cint_c[0] <= pr_x0_s0 and cint_c[1] >= pr_x0_s0 
 
 
-def test_prod_cpms1(setup_prod_cms):
+def test_prod_cpms1(setup_prod_cpms):
 
-    cpms= setup_prod_cms
+    cpms= setup_prod_cpms
     Mmult = cpm.product(cpms=cpms)
 
     assert [x.name for x in Mmult.variables] == ['v1', 'v2', 'v3']
@@ -1494,7 +1494,7 @@ def test_prod_cpms1(setup_prod_cms):
     np.testing.assert_array_almost_equal(Mmult.p, expected, decimal=4)
 
 
-def test_prod_cpms2(setup_prod_cms):
+def test_prod_cpms2(setup_prod_cpms):
 
     values = ['S', 'F']
     v1 = variable.Variable(name='v1', values=values)
@@ -1530,7 +1530,7 @@ def test_prod_cpms2(setup_prod_cms):
     assert [x.name for x in Mmult.variables] == ['v1', 'v2']
 
 
-def test_prod_cpms3(setup_prod_cms):
+def test_prod_cpms3(setup_prod_cpms):
 
     values = ['S', 'F']
     v1 = variable.Variable(name='v1', values=values)
