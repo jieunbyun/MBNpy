@@ -1092,7 +1092,7 @@ class Cpm(object):
 
             w_ori = w.copy() # weight before compatibility check
             if flag:
-                w[~is_cmp] = 0
+                w[~np.array(is_cmp, dtype=bool)] = 0
             else:
                 w[is_cmp] = 0
 
@@ -1171,11 +1171,11 @@ class Cpm(object):
 
             is_cmp1 = iscompatible(self.Cs[row_range,:], self.variables, var_inds, var_states)
             w1 = w_ori.copy()
-            w1[~is_cmp1] = 0
+            w1[~np.array(is_cmp1, dtype=bool)] = 0
 
             is_cmp2 = iscompatible(self.Cs[row_range,:], self.variables, cvar_inds, cvar_states)
             w2 = w_ori.copy()
-            w2[~is_cmp2] = 0
+            w2[~np.array(is_cmp2, dtype=bool)] = 0
 
             neff = len(w_ori)*w_ori.mean()**2 / (sum(x**2 for x in w_ori)/len(w_ori)) # effective sample size
 
@@ -1248,10 +1248,10 @@ def Cs_prod_Cs(Cs1, Cs2, vars1, vars2, q1, q2, ps1, ps2, sample_idx1, sample_idx
     unique_sidx_M1 = np.unique(sample_idx1)
     unique_sidx_M2 = np.unique(sample_idx1)
 
-    only_in_M1 = unique_sidx_M1 - unique_sidx_M2
-    only_in_M2 = unique_sidx_M2 - unique_sidx_M1
+    only_in_M1 = set(unique_sidx_M1) - set(unique_sidx_M2)
+    only_in_M2 = set(unique_sidx_M2) - set(unique_sidx_M1)
 
-    if only_in_M1.size or only_in_M2.size:
+    if len(only_in_M1) or len(only_in_M2):
         warnings.warn(
             f"Mismatch in unique sample indices between M1 and M2.\n"
             f"Indices only in M1: {sorted(only_in_M1)}\n"
@@ -1287,7 +1287,7 @@ def Cs_prod_Cs(Cs1, Cs2, vars1, vars2, q1, q2, ps1, ps2, sample_idx1, sample_idx
     for c1, q1, ps1, sidx1 in zip(Cs1, q1, ps1, sample_idx1):
         row_idx2 = np.where(sample_idx2 == sidx1)[0]
         for i2 in row_idx2:
-            if Cs2[i2][com_vars_idx2] == c1[com_vars_idx1]:
+            if all(Cs2[i2][com_vars_idx2] == c1[com_vars_idx1]):
                 cs_new = np.zeros((1, len(new_vars)))
                 for i, idx in Cs_col_map[0]:
                     cs_new[0, i] = c1[idx]

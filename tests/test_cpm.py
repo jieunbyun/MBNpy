@@ -1448,7 +1448,7 @@ def test_get_prob_and_cov1(setup_hybrid):
     assert cov == pytest.approx(0.4200, rel=1.0e-3)
 
 
-@pytest.mark.skip('Cs_prod_Cs')
+#@pytest.mark.skip('Cs_prod_Cs')
 def test_get_prob_and_cov_cond1(setup_hybrid):
 
     varis, cpms = setup_hybrid
@@ -1465,7 +1465,7 @@ def test_get_prob_and_cov_cond1(setup_hybrid):
     assert cint_c[0] <= 1 and cint_c[1] >= 1 # Truth: P(X0=0 | S = 0) = 1
 
 
-@pytest.mark.skip('Cs_prod_Cs')
+#@pytest.mark.skip('Cs_prod_Cs')
 def test_get_prob_and_cov_cond2(setup_hybrid):
 
     varis, cpms = setup_hybrid
