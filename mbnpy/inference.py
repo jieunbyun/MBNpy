@@ -680,7 +680,10 @@ def prod_Msys_and_Mcomps(Msys, Mcomps_list):
                 st = C[j][Msys.no_child + i]
                 p_st = 0.0
                 for k in m_i.variables[0].B[st]:
-                    p_st += m_i.p[c1.index(k)][0]
+                    if k in c1:
+                        p_st += m_i.p[c1.index(k)][0]
+                    else: # if it's not in C matrix, the probability is 0
+                        p_st += 0.0
 
                 p[j] = p[j] * p_st
 
