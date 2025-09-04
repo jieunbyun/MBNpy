@@ -1,1 +1,1 @@
-__version__ = "0.1.11"  # Ensure this matches the version in setup.py
+__version__ = "0.1.12"  # Ensure this matches the version in setup.py
