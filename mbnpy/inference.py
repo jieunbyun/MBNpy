@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import textwrap
 import copy
 import collections
@@ -1134,3 +1135,84 @@ def cal_first_order_sobol(cpms, input_vars, target_var, elim_order=None):
         sobol_indices.append(float(var_target_v / var_target))
 
     return sobol_indices
+
+def cal_evidence_log_likelihood(
+    evidence,              # pd.DataFrame: columns = variable names, entries = state indices, NaN = missing
+    cpms,                  # Dict[str, cpm.Cpm] or List[cpm.Cpm]
+    var_elim_order         # List[str|variable.Variable] – must cover all variables in the model scope
+):
+    """
+    Compute sum of log-likelihoods for each evidence row, i.e.,
+    log L = Σ_i log P(evidence_i).
+
+    Notes
+    -----
+    - Each row in `evidence` is treated as an independent sample.
+    - Missing values (NaN) are ignored for conditioning in that row.
+    - Variable elimination keeps the last variable in `var_elim_order`
+      so that summing its pmf yields P(evidence row).
+    """
+
+    # Normalise cpms to a list for iteration
+    if isinstance(cpms, dict):
+        cpm_list = list(cpms.values())
+    elif isinstance(cpms, list):
+        cpm_list = cpms
+    else:
+        raise TypeError("cpms must be a dict or a list of Cpm objects")
+
+    # Collect model scope (all variable names that appear in the network)
+    scope_names = set()
+    for M in cpm_list:
+        scope_names.update([v.name for v in M.variables])
+
+    # Normalise var_elim_order to a list of names
+    if len(var_elim_order) == 0:
+        raise AssertionError("var_elim_order must be a non-empty list")
+
+    if isinstance(var_elim_order[0], variable.Variable):
+        ve_names = [v.name for v in var_elim_order]
+    else:
+        ve_names = list(var_elim_order)
+
+    # Sanity check: the elimination order must cover the entire scope
+    if scope_names - set(ve_names):
+        missing = ", ".join(sorted(scope_names - set(ve_names)))
+        raise AssertionError(f"var_elim_order must include every variable in the CPM scope. Missing: {missing}")
+
+    # Process each evidence row
+    n = len(evidence)
+    log_lik = 0.0
+
+    # Columns present in evidence that intersect scope
+    valid_cols = [col for col in evidence.columns if col in scope_names]
+
+    for i in range(n):
+        row = evidence.iloc[i]
+
+        # Determine which variables are observed (non-NaN)
+        obs_vars = [col for col in valid_cols if not pd.isna(row[col])]
+        obs_states = [int(row[col]) for col in obs_vars]
+
+        # 1) Condition on observed variables for this row
+        cpms_c = condition(cpms, obs_vars, obs_states)  # uses existing helper
+        # 2) Variable elimination on all but the last variable in order
+        #    (Keeping the last ensures sum of pmf gives P(evidence))
+        ve_drop = ve_names[:-1] if len(ve_names) > 0 else []
+        M = variable_elim(cpms_c, ve_drop, prod=True)   # existing VE routine
+
+        # 3) Likelihood for this row = sum of pmf over the remaining var
+        if not hasattr(M, "p") or M.p is None or len(M.p) == 0:
+            # If p is empty (degenerate), likelihood is 1 (no info)
+            lik = 1.0
+        else:
+            lik = float(np.sum(M.p))
+
+        # Numerical guard
+        if lik <= 0.0:
+            # Avoid -inf; treat as extremely small but positive
+            lik = np.finfo(float).tiny
+
+        log_lik += np.log(lik)
+
+    return log_lik

@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import networkx as nx
 import sys, os
 import pytest
@@ -1157,3 +1158,80 @@ def test_cal_first_order_sobol():
 
     assert round(sobol_indices[0], 3) == 0.124
     assert round(sobol_indices[1], 4) == 0.0774
+
+def def_XYZ_cpms1():
+    varis = {
+        'X': variable.Variable('X', [0, 1]),
+        'Y': variable.Variable('Y', [0, 1]),
+        'Z': variable.Variable('Z', [0, 1]),
+    }
+    cpms = {
+        # P(X)
+        'X': cpm.Cpm([varis['X']], no_child=1,
+                     C=np.array([0, 1]),
+                     p=np.array([0.1, 0.9])),
+        # P(Y|X)
+        'Y': cpm.Cpm([varis['Y'], varis['X']], no_child=1,
+                     C=np.array([[0, 0],[1, 0],[0, 1],[1, 1]]),
+                     p=np.array([0.9, 0.1, 0.2, 0.8])),
+        # P(Z|Y)
+        'Z': cpm.Cpm([varis['Z'], varis['Y']], no_child=1,
+                     C=np.array([[0, 0],[1, 0],[0, 1],[1, 1]]),
+                     p=np.array([0.8, 0.2, 0.3, 0.7])),
+    }
+    return varis, cpms
+
+def test_cal_evidence_log_likelihood1():
+    _, cpms = def_XYZ_cpms1()
+    # three i.i.d. evidence rows (only Z observed)
+    evidence = pd.DataFrame({'Z': [0, 0, 1]})
+    ll = inference.cal_evidence_log_likelihood(evidence, cpms, ['X', 'Y', 'Z'])
+    # expected ≈ log(0.1069) up to 3 sig figs
+    assert np.isclose(ll, np.log(0.1069), rtol=5e-3, atol=5e-3)
+
+def test_cal_evidence_log_likelihood2():
+    # with NaN in evidence
+    _, cpms = def_XYZ_cpms1()
+    evidence = pd.DataFrame({'Y': [0, np.nan, 0],
+                             'Z': [0, 0, 1]})
+    ll = inference.cal_evidence_log_likelihood(evidence, cpms, ['X', 'Y', 'Z'])
+    # expected ≈ log(0.00507384) up to 3 sig figs
+    assert np.isclose(ll, np.log(0.00507384), rtol=5e-3, atol=5e-3)
+
+def def_XYZ_cpms2():
+    varis = {
+        'X': variable.Variable('X', [0, 1]),
+        'Y': variable.Variable('Y', [0, 1]),
+        'Z': variable.Variable('Z', [0, 1]),
+    }
+    cpms = {
+        # P(X), P(Y) independent
+        'X': cpm.Cpm([varis['X']], no_child=1,
+                     C=np.array([0, 1]),
+                     p=np.array([0.1, 0.9])),
+        'Y': cpm.Cpm([varis['Y']], no_child=1,
+                     C=np.array([0, 1]),
+                     p=np.array([0.2, 0.8])),
+        # P(Z|X,Y)
+        'Z': cpm.Cpm([varis['Z'], varis['X'], varis['Y']], no_child=1,
+                     C=np.array([[0,0,0],[1,0,0],[0,1,0],[1,1,0],
+                                 [0,0,1],[1,0,1],[0,1,1],[1,1,1]]),
+                     p=np.array([0.9,0.1,0.3,0.7,0.3,0.7,0.1,0.9])),
+    }
+    return varis, cpms
+
+def test_cal_evidence_log_likelihood3():
+    # Similar to test1 but different BN
+    _, cpms = def_XYZ_cpms2()
+    evidence = pd.DataFrame({'Z': [0, 0, 1]})
+    ll = inference.cal_evidence_log_likelihood(evidence, cpms, ['X', 'Y', 'Z'])
+    # expected ≈ log(0.0235) up to 3 sig figs
+    assert np.isclose(ll, np.log(0.0235), rtol=5e-3, atol=5e-3)
+
+def test_cal_evidence_log_likelihood4():
+    # Evidence on non-leaf node Y
+    _, cpms = def_XYZ_cpms2()
+    evidence = pd.DataFrame({'Y': [0, 0, 1]})
+    ll = inference.cal_evidence_log_likelihood(evidence, cpms, ['X', 'Y', 'Z'])
+    # expected ≈ log(0.032) up to 3 sig figs
+    assert np.isclose(ll, np.log(0.032), rtol=5e-3, atol=5e-3)
