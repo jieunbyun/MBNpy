@@ -997,15 +997,14 @@ class Cpm(object):
         idx_cnd = get_value_given_condn(idx_cnd, idx_cnd)
 
         for cnd_var, state, idx in zip(cnd_vars_m, cnd_states_m, idx_cnd):
-            try:
-                B = cnd_var.B.copy()
-            except NameError:
-                raise(f'{cnd_var} is not defined')
-            else:
-                C1 = C[:, idx].copy().astype(int)
-                check = [B[x].intersection(B[state]) for x in C1]
-                Ccond[:, idx] = [x for x in ismember(check, B)[1]]
 
+            C1 = C[:, idx].copy().astype(int)
+            state_set = cnd_var.get_set(state)
+            C1_sets = [cnd_var.get_set(x) for x in C1]
+            check = [c_set.intersection(state_set) for c_set in C1_sets]
+            check_st = [cnd_var.get_state(x) for x in check]
+            Ccond[:, idx] = check_st 
+            
         Mx.C = Ccond.copy()
 
         if Mx.p.size:
