@@ -763,13 +763,19 @@ def get_inf_vars(cpms, varis, ve_ord=None):
 
         v = varis_cp[0]
         varis_cp.remove(v)
-        varis_inf.append(v)
+
+        if v not in varis_inf:
+            varis_inf.append(v)
 
         for M in cpms:
-            if v in [x.name for x in M.variables[:M.no_child]]:  # if v is a child variable of M
-                for v2 in [x.name for x in M.variables]:
+            # check if v is a child in this CPM
+            child_vars = [x.name for x in M.variables[:M.no_child]]
+            if v in child_vars:
+                all_vars_in_M = [x.name for x in M.variables]
+                for v2 in all_vars_in_M:
                     if v2 not in varis_inf and v2 not in varis_cp:
-                        varis_inf.append(v2)
+                        # this is the key change:
+                        varis_cp.append(v2)
 
     if ve_ord is not None:
         varis_inf.sort(key=(lambda x: get_ord_inf(x, ve_ord)))
