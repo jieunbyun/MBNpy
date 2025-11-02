@@ -800,7 +800,7 @@ class Cpm(object):
 
         return [self.get_names().index(x) for x in names]
 
-    def get_col(self, names):
+    def get_col(self, names, C='C'):
 
         assert isinstance(names, list), f'names should be a list'
 
@@ -808,11 +808,18 @@ class Cpm(object):
 
         inds = [self.get_names().index(x) for x in names]
 
-        C = np.zeros((len(self.C), len(names)), dtype=int)
-        for i, col_ind in enumerate(inds):
-            C[:,i] = self.C[:,col_ind]
+        if C == 'C':
+            C = np.zeros((len(self.C), len(names)), dtype=int)
+            for i, col_ind in enumerate(inds):
+                C[:,i] = self.C[:,col_ind]
 
-        return C
+            return C
+        elif C == 'Cs':
+            Cs = np.zeros((len(self.Cs), len(names)), dtype=int)
+            for i, col_ind in enumerate(inds):
+                Cs[:,i] = self.Cs[:,col_ind]
+
+            return Cs
 
 
 
