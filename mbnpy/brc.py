@@ -12,12 +12,13 @@ import pickle
 import numpy as np
 import time
 import json
+import psutil
 #import editdistance
 
 from mbnpy import variable, branch
 
 
-def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=100, surv_first=True, active_decomp=10, final_decomp=True, display_freq=10, autosave=50):
+def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_bnd_wr=0.0, max_rules=100, max_memory_gb=np.inf, surv_first=True, active_decomp=10, final_decomp=True, display_freq=10, autosave=50):
 
     """
     Run the BRC algorithm to find (1) non-dominated rules and
@@ -44,6 +45,7 @@ def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_b
             pf_bnd_wr (float, non-negative): bound of system failure probability
                 in ratio (width / lower bound)
             max_rules (int): the maximum number of rules
+            max_memory_gb (float): maximum memory usage in GB
         **Decomposition options**
             surv_first: True if survival branches are considered first
             active_decomp: True if branches are re-obtained at each iteration
@@ -74,6 +76,22 @@ def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_b
     monitor, ctrl = init_monitor()
 
     while ctrl['no_sf'] < max_sf:
+
+        # ---- MEMORY GUARD (early exit) ----
+        rss_gb = psutil.Process().memory_info().rss / (1024**3)
+
+        if (rss_gb >= max_memory_gb):
+            monitor["out_flag"] = "mem_limit"
+            monitor["rss_gb"].append(rss_gb) # when memory limit is exceeded, the memory list is one element longer than other lists
+            print(f"\n***Memory limit exceeded: {rss_gb:.2f} GB used (max: {max_memory_gb} GB). Terminating the analysis.***")
+
+            if autosave:
+                save_brc_data(
+                    rules, brs, sys_res, monitor,
+                    fname_suffix="mem_limit"
+                )
+            break
+        # ------------------------------------
 
         start = time.time() # monitoring purpose
 
@@ -119,7 +137,7 @@ def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_b
             ctrl['no_sf'] += 1
 
             monitor['no_sf'].append(ctrl['no_sf'])
-            monitor, ctrl = update_monitor(monitor, brs, rules, start) # S7
+            monitor, ctrl = update_monitor(monitor, brs, rules, start, rss_gb) # S7
 
             if ctrl['no_sf'] % display_freq == 0:
                 print(f"[System function runs {ctrl['no_sf']}]..")
@@ -137,7 +155,7 @@ def run(probs, sys_fun, rules=None, brs=None, max_sf=np.inf, max_nb=np.inf, pf_b
             brs, _ = decomp_depth_first(rules, probs, max_nb)
             print(f"\n*Final decomposition is completed with {len(brs)} branches (originally {nbr_old} branches).")
 
-        monitor, ctrl = update_monitor(monitor, brs, rules, start)
+        monitor, ctrl = update_monitor(monitor, brs, rules, start, rss_gb)
 
         print(f"\n***Analysis completed with f_sys runs {ctrl['no_sf']}: out_flag = {monitor['out_flag']}***")
         display_msg(monitor)
@@ -166,7 +184,8 @@ def init_monitor():
                'min_len_rf': [], # min. length of rules-failure
                'avg_len_rf': [], # avg. length of rules-failure
                'out_flag': None, # outflag ('complete', 'max_nb', 'pf_bnd', 'max_sf'),
-               'max_bu': 0 # max. number of branches-unknown 
+               'max_bu': 0, # max. number of branches-unknown 
+               'rss_gb': [] # memory usage in GB
               }
 
     # init for ctrl
@@ -180,7 +199,7 @@ def init_monitor():
     return monitor, ctrl
 
 
-def update_monitor(monitor, brs, rules, start):
+def update_monitor(monitor, brs, rules, start, rss_gb: float):
 
     end = time.time() # monitoring purpose
 
@@ -200,6 +219,7 @@ def update_monitor(monitor, brs, rules, start):
     monitor['no_rf'].append(no_rf)
     monitor['no_rs'].append(no_rs)
     monitor['no_ra'].append(no_rs + no_rf)
+    monitor['rss_gb'].append(rss_gb)
 
     no_br = len(brs)
     no_bf = sum([b.up_state == 'f' for b in brs])

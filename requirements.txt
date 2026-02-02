@@ -12,3 +12,4 @@ Shapely>=2.0
 typer>=0.15
 typing_extensions>=4.12
 plotly>=6.2
+psutil>=5.9.0
